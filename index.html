@@ -17,6 +17,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .pg.on{display:flex}
 
 /* 行情 */
+.mp{display:flex;flex-direction:column;flex:1;min-height:0}
 .slist{display:flex;gap:8px;padding:10px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
 .slist::-webkit-scrollbar{display:none}
 .sc{flex:0 0 auto;min-width:85px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;cursor:pointer;text-align:center;transition:all .15s}
@@ -24,7 +25,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .sc .n{font-size:12px;font-weight:600;white-space:nowrap}
 .sc .p{font-size:15px;font-weight:700;margin:2px 0}
 .sc .c{font-size:10px}
-.cbox{flex:1;min-height:0;position:relative}#kc{width:100%;height:100%}
+.ca{flex:1;display:flex;flex-direction:column;min-height:0}
+.cbox{flex:1;min-height:180px;position:relative}#kc{width:100%;height:100%}
 .kr{display:flex;gap:4px;padding:6px 10px 10px;flex-shrink:0}
 .kr b{padding:4px 14px;background:var(--card);border:1px solid var(--bd);border-radius:14px;color:var(--sub);font-size:11px;cursor:pointer}
 .kr b.on{background:var(--o);color:#fff;border-color:var(--o)}
@@ -80,8 +82,14 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .toast.ok{background:#1a4332;border:1px solid var(--g);color:var(--g)}
 .toast.er{background:#3d1f1a;border:1px solid var(--r);color:var(--r)}
 
-/* 桌面 */
-@media(min-width:768px){.slist{flex-direction:column;width:200px;min-width:200px;max-width:200px;border-right:1px solid var(--bd);overflow-y:auto;overflow-x:hidden;padding:8px;gap:4px}.sc{min-width:auto;text-align:left;padding:10px 12px}.mp{flex-direction:row}.ca{flex:1;display:flex;flex-direction:column;min-width:0}.tp,.hp{max-width:440px;margin:0 auto}.cbox{min-height:350px}}
+/* 桌面端 */
+@media(min-width:768px){
+  .mp{flex-direction:row}
+  .slist{flex-direction:column;width:200px;min-width:200px;max-width:200px;border-right:1px solid var(--bd);overflow-y:auto;overflow-x:hidden;padding:8px;gap:4px}
+  .sc{min-width:auto;text-align:left;padding:10px 12px}
+  .cbox{min-height:350px}
+  .tp,.hp{max-width:440px;margin:0 auto}
+}
 </style>
 </head>
 <body>
@@ -92,12 +100,42 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="pg on" id="pg-market">
     <div class="mp">
       <div class="slist" id="sl"></div>
-      <div class="ca"><div class="cbox"><div id="kc"></div></div>
-      <div class="kr"><b onclick="kr(30)" class="on">1月</b><b onclick="kr(60)">2月</b><b onclick="kr(90)">3月</b><b onclick="kr(200)">全部</b></div></div>
+      <div class="ca">
+        <div class="cbox"><div id="kc"></div></div>
+        <div class="kr">
+          <b onclick="kr(30)" class="on">1月</b><b onclick="kr(60)">2月</b><b onclick="kr(90)">3月</b><b onclick="kr(200)">全部</b>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="pg" id="pg-trade"><div class="tp"><div class="ti" id="ti"></div><div class="tab"><b class="on buy" onclick="sa('buy')">买入</b><b class="sell" onclick="sa('sell')">卖出</b></div><div class="fm"><label>交易股数</label><div class="ir"><input type="number" id="sh" value="10" min="1" oninput="uc()"><b class="qb" onclick="qs(1)">1</b><b class="qb" onclick="qs(10)">10</b><b class="qb" onclick="qs(100)">100</b><b class="qb" onclick="qm()">最大</b></div><div class="cl" id="cl"></div><b class="sb buy" id="sb" onclick="tr()">买入</b></div></div></div>
-  <div class="pg" id="pg-hold"><div class="hp"><div class="ov"><div class="oc"><div class="l">总资产</div><div class="v" style="color:var(--b)" id="hv">¥900.00</div></div><div class="oc"><div class="l">持仓市值</div><div class="v" style="color:var(--o)" id="hm">¥0.00</div></div><div class="oc"><div class="l">总盈亏</div><div class="v" id="hp">¥0.00</div></div></div><div id="pl"></div><b onclick="ra()" style="display:block;width:100%;margin-top:12px;padding:12px;background:transparent;border:1px solid var(--r);border-radius:8px;color:var(--r);font-size:14px;cursor:pointer;text-align:center;font-weight:600">🔄 重置账户</b></div></div>
+  <div class="pg" id="pg-trade">
+    <div class="tp">
+      <div class="ti" id="ti"></div>
+      <div class="tab">
+        <b class="on buy" onclick="sa('buy')">买入</b><b class="sell" onclick="sa('sell')">卖出</b>
+      </div>
+      <div class="fm">
+        <label>交易股数</label>
+        <div class="ir">
+          <input type="number" id="sh" value="10" min="1" oninput="uc()">
+          <b class="qb" onclick="qs(1)">1</b><b class="qb" onclick="qs(10)">10</b><b class="qb" onclick="qs(100)">100</b><b class="qb" onclick="qm()">最大</b>
+        </div>
+        <div class="cl" id="cl"></div>
+        <b class="sb buy" id="sb" onclick="tr()">买入</b>
+      </div>
+    </div>
+  </div>
+  <div class="pg" id="pg-hold">
+    <div class="hp">
+      <div class="ov">
+        <div class="oc"><div class="l">总资产</div><div class="v" style="color:var(--b)" id="hv">¥900.00</div></div>
+        <div class="oc"><div class="l">持仓市值</div><div class="v" style="color:var(--o)" id="hm">¥0.00</div></div>
+        <div class="oc"><div class="l">总盈亏</div><div class="v" id="hp">¥0.00</div></div>
+      </div>
+      <div id="pl"></div>
+      <b onclick="ra()" style="display:block;width:100%;margin-top:12px;padding:12px;background:transparent;border:1px solid var(--r);border-radius:8px;color:var(--r);font-size:14px;cursor:pointer;text-align:center;font-weight:600">🔄 重置账户</b>
+    </div>
+  </div>
 </div>
 
 <div class="nav">
@@ -109,44 +147,220 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 <script>
 const SD={"000001":{n:"平安银行",b:12.5,v:0.003},"600519":{n:"贵州茅台",b:1680,v:0.002},"000858":{n:"五粮液",b:156.8,v:0.0025},"601318":{n:"中国平安",b:45.2,v:0.002},"600036":{n:"招商银行",b:38.6,v:0.002},"300750":{n:"宁德时代",b:210.5,v:0.003},"002594":{n:"比亚迪",b:268.3,v:0.0025},"688981":{n:"中芯国际",b:52.4,v:0.004},"300059":{n:"东方财富",b:18.9,v:0.0035},"600276":{n:"恒瑞医药",b:48.7,v:0.0025}};
-let st={},kl={},ba=900,ho={},cs='600519',ac='buy',krg=30,ch=null,tc=0;
+let st={},kl={},ba=900,ho={},selCode='600519',ac='buy',krg=30,chart=null;
 
 function gs(m,s){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
 function sv(){localStorage.setItem('msb',ba);localStorage.setItem('msh',JSON.stringify(ho))}
 function ld(){let b=localStorage.getItem('msb');if(b!==null)ba=parseFloat(b);let h=localStorage.getItem('msh');if(h!==null)ho=JSON.parse(h)}
 function da(n){let d=new Date();d.setDate(d.getDate()-n);return d}
-function gk(cd){let s=SD[cd],bp=s.b,cu=bp*(0.7+Math.random()*0.6),k=[],nw=new Date();for(let i=200;i>0;i--){let d=new Date(nw-da(i)),ds=d.toISOString().split('T')[0];let ch=gs(0,cu*0.02),o=cu,c=cu+ch,hi=Math.max(o,c)*(1+Math.random()*0.02),lo=Math.min(o,c)*(1-Math.random()*0.02),vo=Math.floor(100000+Math.random()*4900000);k.push({dt:ds,o:+o.toFixed(2),c:+c.toFixed(2),h:+hi.toFixed(2),l:+lo.toFixed(2),v:vo});cu=c}return k}
 
-function tk(){tc++;for(let cd in SD){let s=st[cd],k=kl[cd],sd=SD[cd],lc=k[k.length-1].c;let ch=gs(0,lc*sd.v);ch=Math.max(-lc*0.015,Math.min(lc*0.015,ch));let np=Math.max(0.01,+(lc+ch).toFixed(2));s.p=np;let last=k[k.length-1];last.c=np;last.h=Math.max(last.h,np);last.l=Math.min(last.l,np);if(tc%60===0){k.push({dt:new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit'}),o:np,c:np,h:np,l:np,v:Math.floor(50000+Math.random()*200000)});if(k.length>300)k=k.slice(-300)}}us();uti();uh();ub();if(document.getElementById('pg-market').classList.contains('on'))rc()}
-setInterval(tk,1500);
+/* 生成历史K线 */
+function gk(cd){
+  let s=SD[cd],bp=s.b,cur=bp*(0.7+Math.random()*0.6),k=[],nw=new Date();
+  for(let i=200;i>0;i--){
+    let dt=new Date(nw-da(i)),ds=dt.toISOString().split('T')[0];
+    let ch=gs(0,cur*0.02),o=cur,c=cur+ch;
+    let hi=Math.max(o,c)*(1+Math.random()*0.02),lo=Math.min(o,c)*(1-Math.random()*0.02);
+    let vo=Math.floor(100000+Math.random()*4900000);
+    k.push({dt:ds,o:+o.toFixed(2),c:+c.toFixed(2),h:+hi.toFixed(2),l:+lo.toFixed(2),v:vo});
+    cur=c;
+  }
+  return k;
+}
 
-function go(p){document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));document.getElementById('pg-'+p).classList.add('on');document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));document.querySelector('[data-pg="'+p+'"]').classList.add('on');if(p==='market')setTimeout(()=>{if(ch)ch.resize();rc()},100);if(p==='trade')uti();if(p==='hold')uh()}
+/* 页面切换 */
+function go(p){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-pg="'+p+'"]').classList.add('on');
+  if(p==='market'){setTimeout(()=>{if(chart)chart.resize();rc();},100)}
+  if(p==='trade')uti();
+  if(p==='hold')uh();
+}
 
-function rs(){let h='';for(let c in st){let s=st[c],p=s.p||0,sel=c===cs?' sel':'';let lc=kl[c]?kl[c][kl[c].length-1].c:p;let pct=lc?((p-lc)/lc*100):0;let cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';h+=`<div class="sc${sel}" onclick="sel('${c}')"><div class="n">${s.n}</div><div class="p">${p.toFixed(2)}</div><div class="c ${cls}">${sg}${pct.toFixed(2)}%</div></div>`}document.getElementById('sl').innerHTML=h}
-function us(){let cs=document.querySelectorAll('.sc'),cds=Object.keys(st);cs.forEach((c,i)=>{if(i>=cds.length)return;let s=st[cds[i]],p=s.p||0;let lc=kl[cds[i]]?kl[cds[i]][kl[cds[i]].length-1].c:p;let pct=lc?((p-lc)/lc*100):0;let cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';c.querySelector('.p').textContent=p.toFixed(2);let el=c.querySelector('.c');el.textContent=sg+pct.toFixed(2)+'%';el.className='c '+cls})}
-function sel(cd){cs=cd;rs();rc();uti()}
+/* 股票列表渲染 */
+function rs(){
+  let h='';
+  for(let c in st){
+    let s=st[c],p=s.p||0,sel=c===selCode?' sel':'';
+    let lc=kl[c]?kl[c][kl[c].length-1].c:p;
+    let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
+    h+='<div class="sc'+sel+'" onclick="sel(\''+c+'\')"><div class="n">'+s.n+'</div><div class="p">'+p.toFixed(2)+'</div><div class="c '+cls+'">'+sg+pct.toFixed(2)+'%</div></div>';
+  }
+  document.getElementById('sl').innerHTML=h;
+}
+
+/* 更新股票列表价格 */
+function us(){
+  let cs=document.querySelectorAll('.sc'),cds=Object.keys(st);
+  cs.forEach((c,i)=>{
+    if(i>=cds.length)return;
+    let s=st[cds[i]],p=s.p||0;
+    let lc=kl[cds[i]]?kl[cds[i]][kl[cds[i]].length-1].c:p;
+    let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
+    c.querySelector('.p').textContent=p.toFixed(2);
+    let el=c.querySelector('.c');el.textContent=sg+pct.toFixed(2)+'%';el.className='c '+cls;
+  });
+}
+
+function sel(cd){selCode=cd;rs();rc();uti()}
 function kr(d){krg=d;document.querySelectorAll('.kr b').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');rc()}
 
-function rc(){let dom=document.getElementById('kc');if(!ch){ch=echarts.init(dom,'dark');window.addEventListener('resize',()=>{if(ch)ch.resize()})}let k=(kl[cs]||[]).slice(-krg);if(!k.length)return;let ds=k.map(d=>d.dt),oh=k.map(d=>[d.o,d.c,d.l,d.h]),vo=k.map(d=>d.v);ch.setOption({backgroundColor:'#0d1117',animation:false,tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#161b22',borderColor:'#30363d',textStyle:{color:'#c9d1d9',fontSize:11},formatter:function(p){if(!p||!p[0])return'';let d=p[0].data,ch=((d[2]-d[1])/d[1]*100).toFixed(2),s=ch>=0?'+':'',cl=ch>=0?'#e15241':'#3fb950';return`<b>${p[0].axisValue}</b><br/>开:<span style="color:${cl}">${d[1].toFixed(2)}</span> 收:<span style="color:${cl}">${d[2].toFixed(2)}</span> 涨跌:<span style="color:${cl}">${s}${ch}%</span><br/>高:${d[4].toFixed(2)} 低:${d[3].toFixed(2)} 量:${(p[1]?.data/10000).toFixed(0)}万手`}},grid:[{left:'8%',right:'4%',top:'5%',height:'62%'},{left:'8%',right:'4%',top:'74%',height:'18%'}],xAxis:[{type:'category',data:ds,gridIndex:0,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'category',data:ds,gridIndex:1,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{show:false}}],yAxis:[{type:'value',gridIndex:0,scale:true,splitLine:{lineStyle:{color:'#21262d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'value',gridIndex:1,axisLabel:{color:'#8b949e',fontSize:8}}],series:[{name:'K线',type:'candlestick',xAxisIndex:0,yAxisIndex:0,data:oh,itemStyle:{color:'#e15241',color0:'#3fb950',borderColor:'#e15241',borderColor0:'#3fb950'}},{name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vo,itemStyle:{color:function(p){let i=p.dataIndex;return oh[i][2]>=oh[i][1]?'#e15241':'#3fb950'}}}]},true)}
-function rc2(){if(!ch){rc();return}let k=(kl[cs]||[]).slice(-krg);if(!k.length)return;ch.setOption({xAxis:[{data:k.map(d=>d.dt)},{data:k.map(d=>d.dt)}],series:[{data:k.map(d=>[d.o,d.c,d.l,d.h])},{data:k.map(d=>d.v)}]})}
+/* 渲染K线图 */
+function rc(){
+  let dom=document.getElementById('kc');
+  if(!chart){
+    chart=echarts.init(dom);
+    window.addEventListener('resize',()=>{if(chart)chart.resize();});
+  }
+  let k=(kl[selCode]||[]).slice(-krg);
+  if(!k.length)return;
+  let ds=k.map(d=>d.dt),oh=k.map(d=>[d.o,d.c,d.l,d.h]),vo=k.map(d=>d.v);
+  chart.setOption({
+    backgroundColor:'#0d1117',
+    animation:false,
+    tooltip:{
+      trigger:'axis',axisPointer:{type:'cross'},
+      backgroundColor:'#161b22',borderColor:'#30363d',
+      textStyle:{color:'#c9d1d9',fontSize:11},
+      formatter:function(p){
+        if(!p||!p[0])return'';
+        let d=p[0].data,chg=((d[2]-d[1])/d[1]*100).toFixed(2),s=chg>=0?'+':'',cl=chg>=0?'#e15241':'#3fb950';
+        return'<b>'+p[0].axisValue+'</b><br/>开:<span style="color:'+cl+'">'+d[1].toFixed(2)+'</span> 收:<span style="color:'+cl+'">'+d[2].toFixed(2)+'</span> 涨跌:<span style="color:'+cl+'">'+s+chg+'%</span><br/>高:'+d[4].toFixed(2)+' 低:'+d[3].toFixed(2)+' 量:'+((p[1]?.data||0)/10000).toFixed(0)+'万手';
+      }
+    },
+    grid:[
+      {left:'8%',right:'4%',top:'5%',height:'62%'},
+      {left:'8%',right:'4%',top:'74%',height:'18%'}
+    ],
+    xAxis:[
+      {type:'category',data:ds,gridIndex:0,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{color:'#8b949e',fontSize:9}},
+      {type:'category',data:ds,gridIndex:1,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{show:false}}
+    ],
+    yAxis:[
+      {type:'value',gridIndex:0,scale:true,splitLine:{lineStyle:{color:'#21262d'}},axisLabel:{color:'#8b949e',fontSize:9}},
+      {type:'value',gridIndex:1,axisLabel:{color:'#8b949e',fontSize:8}}
+    ],
+    series:[
+      {name:'K线',type:'candlestick',xAxisIndex:0,yAxisIndex:0,data:oh,
+       itemStyle:{color:'#e15241',color0:'#3fb950',borderColor:'#e15241',borderColor0:'#3fb950'}},
+      {name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vo,
+       itemStyle:{color:function(p){let i=p.dataIndex;return oh[i]&&oh[i][2]>=oh[i][1]?'#e15241':'#3fb950'}}}
+    ]
+  },true);
+}
 
-function sa(a){ac=a;let btns=document.querySelectorAll('.tab b');btns.forEach(b=>b.classList.remove('on'));if(a==='buy'){btns[0].classList.add('on');document.getElementById('sb').className='sb buy';document.getElementById('sb').textContent='买入'}else{btns[1].classList.add('on');document.getElementById('sb').className='sb sell';document.getElementById('sb').textContent='卖出'}uc()}
+/* 交易类型切换 */
+function sa(a){
+  ac=a;
+  let btns=document.querySelectorAll('.tab b');
+  btns.forEach(b=>b.classList.remove('on'));
+  if(a==='buy'){btns[0].classList.add('on');document.getElementById('sb').className='sb buy';document.getElementById('sb').textContent='买入'}
+  else{btns[1].classList.add('on');document.getElementById('sb').className='sb sell';document.getElementById('sb').textContent='卖出'}
+  uc();
+}
 function qs(n){document.getElementById('sh').value=n;uc()}
-function qm(){let s=st[cs];if(!s)return;if(ac==='buy')document.getElementById('sh').value=Math.floor(ba/s.p);else{let h=ho[cs];document.getElementById('sh').value=h?h.s:0}uc()}
-function uc(){let s=st[cs];if(!s)return;let sh=parseInt(document.getElementById('sh').value)||0,am=sh*s.p;if(ac==='buy')document.getElementById('cl').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+ba.toFixed(2);else{let h=ho[cs],mx=h?h.s:0;document.getElementById('cl').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股'}}
-function uti(){let s=st[cs];if(!s)return;let p=s.p||0,lc=kl[cs]?kl[cs][kl[cs].length-1].c:p;let chg=p-lc,pct=lc?((p-lc)/lc*100):0;let cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[cs];document.getElementById('ti').innerHTML=`<div class="r"><span class="tn">${s.n}</span><span style="font-size:11px;color:var(--sub)">${cs}</span></div><div class="r"><span class="tp">${p.toFixed(2)}</span><span class="tc ${cls}">${sg}${chg.toFixed(2)} (${sg}${pct.toFixed(2)}%)</span></div><div class="dt"><span>可用资金</span><span>¥${ba.toFixed(2)}</span><span>持仓</span><span>${h?h.s:0} 股</span><span>可买</span><span>${Math.floor(ba/p)} 股</span></div>`;uc()}
-function tr(){let s=st[cs],sh=parseInt(document.getElementById('sh').value)||0;if(sh<=0)return stt('请输入有效股数','er');if(ac==='buy'){let cs=s.p*sh;if(ba<cs)return stt('余额不足！需 ¥'+cs.toFixed(2),'er');ba-=cs;if(!ho[cs])ho[cs]={s:0,ac:0};let h=ho[cs],tc=h.s*h.ac+cs;h.s+=sh;h.ac=tc/h.s;s.p=+(s.p*(1+0.0005*sh)).toFixed(2);stt('✅ 买入成功！'+s.n+' '+sh+'股','ok')}else{if(!ho[cs]||ho[cs].s<sh)return stt('持仓不足！','er');ba+=s.p*sh;ho[cs].s-=sh;if(ho[cs].s<=0)delete ho[cs];s.p=+(s.p*(1-0.0005*sh)).toFixed(2);stt('✅ 卖出成功！'+s.n+' '+sh+'股','ok')}sv();uti();uh();ub();rs()}
+function qm(){
+  let s=st[selCode];if(!s)return;
+  if(ac==='buy')document.getElementById('sh').value=Math.floor(ba/s.p);
+  else{let h=ho[selCode];document.getElementById('sh').value=h?h.s:0}
+  uc();
+}
+function uc(){
+  let s=st[selCode];if(!s)return;
+  let sh=parseInt(document.getElementById('sh').value)||0,am=sh*s.p;
+  if(ac==='buy')document.getElementById('cl').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+ba.toFixed(2);
+  else{let h=ho[selCode],mx=h?h.s:0;document.getElementById('cl').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股'}
+}
 
-function uh(){let tv=ba,mv=0,its=[];for(let c in ho){let h=ho[c];if(h.s<=0)continue;let s=st[c];if(!s)continue;let mk=h.s*s.p,ct=h.s*h.ac,pf=mk-ct,pc=ct>0?(pf/ct*100):0;tv+=mk;mv+=mk;its.push({cd:c,nm:s.n,s:h.s,ac:h.ac,p:s.p,mk,pf,pc})}let tp=tv-900;document.getElementById('hv').textContent='¥'+tv.toFixed(2);document.getElementById('hm').textContent='¥'+mv.toFixed(2);let pe=document.getElementById('hp');pe.textContent=(tp>=0?'+':'')+'¥'+tp.toFixed(2);pe.className='v '+(tp>=0?'up':'dn');let ls=document.getElementById('pl');if(!its.length){ls.innerHTML='<div class="em"><div class="ic">📭</div><div>暂无持仓</div><div style="font-size:11px;margin-top:4px">去交易页买入股票吧</div></div>';return}let h='';its.forEach(it=>{let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';h+=`<div class="pi" onclick="cs='${it.cd}';go('trade');setTimeout(()=>uti(),200)"><div class="ph"><div><span class="pn">${it.nm}</span> <span class="pc">${it.cd}</span></div><span class="pp ${cls}">${sg}¥${it.pf.toFixed(2)}</span></div><div class="pr"><span>持仓 <span>${it.s}股</span></span><span>成本 <span>¥${it.ac.toFixed(2)}</span></span><span>现价 <span>¥${it.p.toFixed(2)}</span></span><span>收益率 <span class="${cls}">${sg}${it.pc.toFixed(2)}%</span></span></div></div>`});ls.innerHTML=h}
+/* 更新交易页信息 */
+function uti(){
+  let s=st[selCode];if(!s)return;
+  let p=s.p||0,lc=kl[selCode]?kl[selCode][kl[selCode].length-1].c:p;
+  let chg=p-lc,pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[selCode];
+  document.getElementById('ti').innerHTML='<div class="r"><span class="tn">'+s.n+'</span><span style="font-size:11px;color:var(--sub)">'+selCode+'</span></div><div class="r"><span class="tp">'+p.toFixed(2)+'</span><span class="tc '+cls+'">'+sg+chg.toFixed(2)+' ('+sg+pct.toFixed(2)+'%)</span></div><div class="dt"><span>可用资金</span><span>¥'+ba.toFixed(2)+'</span><span>持仓</span><span>'+(h?h.s:0)+' 股</span><span>可买</span><span>'+Math.floor(ba/p)+' 股</span></div>';
+  uc();
+}
+
+/* 执行交易 — 只有交易时才触发价格变动 */
+function tr(){
+  let s=st[selCode],sh=parseInt(document.getElementById('sh').value)||0;
+  if(sh<=0)return stt('请输入有效股数','er');
+
+  if(ac==='buy'){
+    let totalCost=s.p*sh;
+    if(ba<totalCost)return stt('余额不足！需 ¥'+totalCost.toFixed(2),'er');
+    ba-=totalCost;
+    if(!ho[selCode])ho[selCode]={s:0,ac:0};
+    let h=ho[selCode],tc=h.s*h.ac+totalCost;
+    h.s+=sh;h.ac=tc/h.s;
+    // 买入推动价格上涨
+    s.p=+(s.p*(1+0.0005*sh)).toFixed(2);
+    stt('✅ 买入成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
+  }else{
+    if(!ho[selCode]||ho[selCode].s<sh)return stt('持仓不足！','er');
+    ba+=s.p*sh;
+    ho[selCode].s-=sh;
+    if(ho[selCode].s<=0)delete ho[selCode];
+    // 卖出压低价格
+    s.p=+(s.p*(1-0.0005*sh)).toFixed(2);
+    stt('✅ 卖出成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
+  }
+
+  // 交易后更新K线最后一根蜡烛
+  let k=kl[selCode];
+  if(k&&k.length>0){
+    let last=k[k.length-1];
+    last.c=s.p;
+    last.h=Math.max(last.h,s.p);
+    last.l=Math.min(last.l,s.p);
+  }
+
+  sv();us();uti();uh();ub();rc();rs();
+}
+
+/* 持仓页 */
+function uh(){
+  let tv=ba,mv=0,its=[];
+  for(let c in ho){
+    let h=ho[c];if(h.s<=0)continue;
+    let s=st[c];if(!s)continue;
+    let mk=h.s*s.p,ct=h.s*h.ac,pf=mk-ct,pc=ct>0?(pf/ct*100):0;
+    tv+=mk;mv+=mk;its.push({cd:c,nm:s.n,s:h.s,ac:h.ac,p:s.p,mk,pf,pc});
+  }
+  let tp=tv-900;
+  document.getElementById('hv').textContent='¥'+tv.toFixed(2);
+  document.getElementById('hm').textContent='¥'+mv.toFixed(2);
+  let pe=document.getElementById('hp');
+  pe.textContent=(tp>=0?'+':'')+'¥'+tp.toFixed(2);
+  pe.className='v '+(tp>=0?'up':'dn');
+  let ls=document.getElementById('pl');
+  if(!its.length){
+    ls.innerHTML='<div class="em"><div class="ic">📭</div><div>暂无持仓</div><div style="font-size:11px;margin-top:4px">去交易页买入股票吧</div></div>';
+    return;
+  }
+  let h='';
+  its.forEach(it=>{
+    let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';
+    h+='<div class="pi" onclick="selCode=\''+it.cd+'\';go(\'trade\');setTimeout(()=>uti(),200)"><div class="ph"><div><span class="pn">'+it.nm+'</span> <span class="pc">'+it.cd+'</span></div><span class="pp '+cls+'">'+sg+'¥'+it.pf.toFixed(2)+'</span></div><div class="pr"><span>持仓 <span>'+it.s+'股</span></span><span>成本 <span>¥'+it.ac.toFixed(2)+'</span></span><span>现价 <span>¥'+it.p.toFixed(2)+'</span></span><span>收益率 <span class="'+cls+'">'+sg+it.pc.toFixed(2)+'%</span></span></div></div>';
+  });
+  ls.innerHTML=h;
+}
+
 function ub(){document.getElementById('hb').textContent='¥'+ba.toFixed(2)}
 function ra(){if(!confirm('确定重置账户？'))return;ba=900;ho={};sv();ub();uti();uh();stt('✅ 账户已重置','ok')}
 function stt(m,t){let el=document.getElementById('toast');el.textContent=m;el.className='toast '+t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2500)}
+
+// 键盘回车快捷交易
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement===document.getElementById('sh'))tr()});
 
-ld();if(ba===0&&Object.keys(ho).length===0){ba=900;sv()}
+// 初始化
+ld();
+if(ba===0&&Object.keys(ho).length===0){ba=900;sv()}
 for(let c in SD){kl[c]=gk(c);let lc=kl[c][kl[c].length-1].c;st[c]={n:SD[c].n,p:lc}}
 rs();rc();uti();uh();ub();
-window.addEventListener('resize',()=>{if(ch)ch.resize()});
+window.addEventListener('resize',()=>{if(chart)chart.resize();});
 </script>
 </body>
 </html>
