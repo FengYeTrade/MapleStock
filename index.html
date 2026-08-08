@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>枫叶炒股 - 模拟交易系统</title>
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'PingFang SC','Microsoft YaHei',sans-serif;background:#0d1117;color:#c9d1d9;min-height:100vh;overflow:hidden}
+.header{background:#161b22;border-bottom:1px solid #30363d;padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
+.header .logo{font-size:20px;font-weight:bold;color:#ff6b35;display:flex;align-items:center;gap:8px}
+.header .logo span{font-size:12px;color:#8b949e;font-weight:normal}
+.header .user-info{display:flex;align-items:center;gap:12px}
+.balance-box{background:#1a2332;border:1px solid #30363d;border-radius:6px;padding:5px 12px}
+.balance-box .lbl{color:#8b949e;font-size:10px}.balance-box .val{color:#3fb950;font-weight:bold;font-size:17px}
+.container{display:flex;height:calc(100vh - 48px)}
+.sidebar{width:260px;background:#161b22;border-right:1px solid #30363d;overflow-y:auto}
+.sidebar h3{padding:12px 14px 6px;color:#ff6b35;font-size:13px;border-bottom:1px solid #30363d}
+.stock-item{display:flex;justify-content:space-between;padding:9px 14px;border-bottom:1px solid #21262d;cursor:pointer;transition:all .15s}
+.stock-item:hover{background:#1c2129}.stock-item.active{background:#1a2332;border-left:3px solid #ff6b35}
+.stock-item .sn{font-size:13px;font-weight:500}.stock-item .sc{font-size:10px;color:#8b949e}
+.stock-item .sp{text-align:right}.stock-item .sp .p{font-size:14px;font-weight:bold}.stock-item .sp .c{font-size:10px}
+.up{color:#e15241}.down{color:#3fb950}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.overview{display:flex;gap:10px;padding:10px 16px;border-bottom:1px solid #21262d}
+.ocard{flex:1;background:#161b22;border:1px solid #30363d;border-radius:8px;padding:10px;text-align:center}
+.ocard .lbl{font-size:10px;color:#8b949e}.ocard .val{font-size:18px;font-weight:bold;margin-top:2px}
+.chart-area{flex:1;position:relative;display:flex;flex-direction:column}
+.ctitle{padding:8px 16px;font-size:16px;font-weight:bold;display:flex;align-items:center;gap:8px}
+.ctitle .pr{font-size:22px}.ctitle .chg{font-size:12px;margin-left:3px}
+#kline-chart{flex:1;width:100%}
+.ktools{display:flex;gap:5px;padding:6px 16px}
+.ktools button{padding:3px 10px;background:#21262d;border:1px solid #30363d;border-radius:4px;color:#8b949e;cursor:pointer;font-size:11px}
+.ktools button.active{background:#ff6b35;color:#fff;border-color:#ff6b35}
+.trade-panel{width:300px;background:#161b22;border-left:1px solid #30363d;overflow-y:auto;padding:14px}
+.trade-panel h3{color:#ff6b35;font-size:14px;margin-bottom:10px}
+.info-row{display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid #21262d}
+.info-row .iv{font-weight:bold}
+.ttabs{display:flex;gap:0;margin:10px 0}
+.ttabs button{flex:1;padding:7px;border:1px solid #30363d;background:#0d1117;color:#c9d1d9;cursor:pointer;font-size:13px}
+.ttabs button:first-child{border-radius:6px 0 0 6px}.ttabs button:last-child{border-radius:0 6px 6px 0}
+.ttabs button.active{background:#ff6b35;color:#fff;border-color:#ff6b35}
+.tform label{display:block;font-size:11px;color:#8b949e;margin-bottom:3px}
+.tform input{width:100%;padding:9px;background:#0d1117;border:1px solid #30363d;border-radius:6px;color:#c9d1d9;font-size:15px;margin-bottom:8px}
+.tform .calc{font-size:11px;color:#8b949e;margin-bottom:8px}
+.tform .btn{width:100%;padding:11px;border:none;border-radius:6px;font-size:15px;font-weight:bold;cursor:pointer;transition:all .15s}
+.tform .btn.buy{background:#e15241;color:#fff}.tform .btn.buy:hover{background:#c94032}
+.tform .btn.sell{background:#3fb950;color:#fff}.tform .btn.sell:hover{background:#2ea043}
+.tform .btn:disabled{opacity:.5;cursor:not-allowed}
+.portfolio h4{color:#ff6b35;font-size:12px;margin:12px 0 6px}
+.pos-item{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid #21262d;font-size:11px}.pos-item .pn{font-weight:bold}
+.msg{position:fixed;top:16px;right:16px;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;animation:slideIn .3s}
+@keyframes slideIn{from{transform:translateX(100px);opacity:0}to{transform:translateX(0);opacity:1}}
+.msg.suc{background:#1a4332;border:1px solid #3fb950;color:#3fb950}
+.msg.err{background:#3d1f1a;border:1px solid #e15241;color:#e15241}
+.rbtn{padding:4px 10px;background:transparent;border:1px solid #30363d;border-radius:4px;color:#8b949e;cursor:pointer;font-size:11px}
+.rbtn:hover{border-color:#e15241;color:#e15241}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="logo">🍁 枫叶炒股 <span>MapleStock Simulator</span></div>
+  <div class="user-info">
+    <button class="rbtn" onclick="resetAccount()">🔄 重置</button>
+    <div class="balance-box"><div class="lbl">💰 可用资金</div><div class="val" id="balance">¥900.00</div></div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="sidebar" id="stock-list"></div>
+
+  <div class="main">
+    <div class="overview">
+      <div class="ocard"><div class="lbl">总资产</div><div class="val" id="total-val" style="color:#58a6ff">¥900.00</div></div>
+      <div class="ocard"><div class="lbl">总盈亏</div><div class="val" id="total-profit">¥0.00</div></div>
+      <div class="ocard"><div class="lbl">盈亏率</div><div class="val" id="profit-pct">0.00%</div></div>
+      <div class="ocard"><div class="lbl">持仓市值</div><div class="val" id="hold-val" style="color:#ff6b35">¥0.00</div></div>
+    </div>
+
+    <div class="chart-area">
+      <div class="ctitle">
+        <span id="sname">贵州茅台</span><span id="scode" style="color:#8b949e;font-size:12px">600519</span>
+        <span class="pr" id="sprice">1680.00</span>
+        <span class="chg up" id="schg">+0.00 (+0.00%)</span>
+      </div>
+      <div class="ktools">
+        <button onclick="setDays(30)" class="active">1月</button>
+        <button onclick="setDays(60)">2月</button>
+        <button onclick="setDays(90)">3月</button>
+        <button onclick="setDays(200)">全部</button>
+      </div>
+      <div id="kline-chart"></div>
+    </div>
+  </div>
+
+  <div class="trade-panel">
+    <h3>📊 <span id="tn">贵州茅台</span></h3>
+    <div class="info-row"><span>最新价</span><span class="iv" id="tp">1680.00</span></div>
+    <div class="info-row"><span>涨跌</span><span class="iv up" id="tchg">+0.00 (+0.00%)</span></div>
+    <div class="info-row"><span>可用资金</span><span class="iv" id="tbal">¥900.00</span></div>
+    <div class="info-row"><span>可买(股)</span><span class="iv" id="tmax">0</span></div>
+    <div class="info-row"><span>持仓</span><span class="iv" id="thold">0 股</span></div>
+
+    <div class="ttabs">
+      <button class="active" onclick="setAction('buy')">买入</button>
+      <button onclick="setAction('sell')">卖出</button>
+    </div>
+
+    <div class="tform">
+      <label>交易股数</label>
+      <input type="number" id="shares" value="10" min="1" oninput="updateCalc()">
+      <div class="calc" id="calc">预计: ¥0.00</div>
+      <button class="btn buy" id="tbtn" onclick="executeTrade()">买入</button>
+    </div>
+
+    <div class="portfolio">
+      <h4>📋 持仓明细</h4>
+      <div id="plist"></div>
+    </div>
+  </div>
+</div>
+<div class="msg" id="msg" style="display:none"></div>
+
+<script>
+// ============ 股票数据 ============
+const STOCKS = {
+  "000001":{name:"平安银行",price:12.50,change:0,change_pct:0},
+  "600519":{name:"贵州茅台",price:1680.00,change:0,change_pct:0},
+  "000858":{name:"五粮液",price:156.80,change:0,change_pct:0},
+  "601318":{name:"中国平安",price:45.20,change:0,change_pct:0},
+  "600036":{name:"招商银行",price:38.60,change:0,change_pct:0},
+  "300750":{name:"宁德时代",price:210.50,change:0,change_pct:0},
+  "002594":{name:"比亚迪",price:268.30,change:0,change_pct:0},
+  "688981":{name:"中芯国际",price:52.40,change:0,change_pct:0},
+  "300059":{name:"东方财富",price:18.90,change:0,change_pct:0},
+  "600276":{name:"恒瑞医药",price:48.70,change:0,change_pct:0},
+};
+
+// ============ 状态 ============
+let curStock='600519', action='buy', kDays=30, chart=null;
+let balance=900, holdings={};
+let klines={};
+
+// ============ 工具函数 ============
+function gauss(mean,std){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return mean+std*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);}
+
+function save(){localStorage.setItem('maple_balance',balance);localStorage.setItem('maple_holdings',JSON.stringify(holdings));}
+function load(){let b=localStorage.getItem('maple_balance');if(b!==null)balance=parseFloat(b);let h=localStorage.getItem('maple_holdings');if(h!==null)holdings=JSON.parse(h);}
+
+// ============ 生成K线 ============
+function genKlines(code){
+  let s=STOCKS[code],bp=s.price,cur=bp*(0.7+Math.random()*0.6),kl=[],now=new Date();
+  for(let i=200;i>0;i--){
+    let d=new Date(now-days(i)),ds=d.toISOString().split('T')[0];
+    let ch=gauss(0,cur*0.02),o=cur,c=cur+ch,h=Math.max(o,c)*(1+Math.random()*0.02),l=Math.min(o,c)*(1-Math.random()*0.02),v=Math.floor(100000+Math.random()*4900000);
+    kl.push({date:ds,open:+o.toFixed(2),close:+c.toFixed(2),high:+h.toFixed(2),low:+l.toFixed(2),volume:v});
+    cur=c;
+  }
+  s.price=kl[kl.length-1].close;
+  return kl;
+}
+function days(n){let d=new Date();d.setDate(d.getDate()-n);return d;}
+
+// ============ 价格波动 ============
+function tick(){
+  for(let code in STOCKS){
+    let s=STOCKS[code],kl=klines[code],lc=kl[kl.length-1].close;
+    let ch=gauss(0,lc*0.005),np=Math.max(lc*0.9,Math.min(lc*1.1,lc+ch));
+    s.price=+np.toFixed(2);s.change=+(np-lc).toFixed(2);s.change_pct=+((np-lc)/lc*100).toFixed(2);
+  }
+  renderStockList();updateTitle();updateTrade();updateOverview();updatePortfolio();renderChart();
+}
+setInterval(tick,3000);
+
+// ============ 渲染股票列表 ============
+function renderStockList(){
+  let h='<h3>📈 股票列表</h3>';
+  for(let code in STOCKS){
+    let s=STOCKS[code],cls=s.change_pct>=0?'up':'down',sg=s.change_pct>=0?'+':'',ac=code===curStock?' active':'';
+    h+=`<div class="stock-item${ac}" onclick="selectStock('${code}')"><div><div class="sn">${s.name}</div><div class="sc">${code}</div></div><div class="sp"><div class="p">${s.price.toFixed(2)}</div><div class="c ${cls}">${sg}${s.change.toFixed(2)} (${sg}${s.change_pct.toFixed(2)}%)</div></div></div>`;
+  }
+  document.getElementById('stock-list').innerHTML=h;
+}
+
+// ============ 选择股票 ============
+function selectStock(code){curStock=code;renderStockList();updateTitle();updateTrade();renderChart();}
+
+// ============ 更新标题 ============
+function updateTitle(){
+  let s=STOCKS[curStock];if(!s)return;
+  document.getElementById('sname').textContent=s.name;
+  document.getElementById('scode').textContent=curStock;
+  document.getElementById('sprice').textContent=s.price.toFixed(2);
+  let cls=s.change_pct>=0?'up':'down',sg=s.change_pct>=0?'+':'';
+  document.getElementById('schg').className='chg '+cls;
+  document.getElementById('schg').textContent=sg+s.change.toFixed(2)+' ('+sg+s.change_pct.toFixed(2)+'%)';
+  document.getElementById('tn').textContent=s.name;
+}
+
+// ============ 更新交易面板 ============
+function updateTrade(){
+  let s=STOCKS[curStock];if(!s)return;
+  document.getElementById('tp').textContent=s.price.toFixed(2);
+  let cls=s.change_pct>=0?'up':'down',sg=s.change_pct>=0?'+':'';
+  document.getElementById('tchg').className='iv '+cls;
+  document.getElementById('tchg').textContent=sg+s.change.toFixed(2)+' ('+sg+s.change_pct.toFixed(2)+'%)';
+  document.getElementById('tbal').textContent='¥'+balance.toFixed(2);
+  document.getElementById('tmax').textContent=Math.floor(balance/s.price);
+  let h=holdings[curStock];document.getElementById('thold').textContent=(h?h.shares:0)+' 股';
+  updateCalc();
+}
+
+// ============ 更新总览 ============
+function updateOverview(){
+  let tv=balance,mv=0,tc=0;
+  for(let code in holdings){
+    let h=holdings[code];if(h.shares>0){let s=STOCKS[code];tv+=h.shares*s.price;mv+=h.shares*s.price;tc+=h.shares*h.avg_cost;}
+  }
+  let tp=tv-900,pct=tc>0?((tv-900-tc)/(900+tc)*100):((tv-900)/900*100);
+  document.getElementById('balance').textContent='¥'+balance.toFixed(2);
+  document.getElementById('total-val').textContent='¥'+tv.toFixed(2);
+  let cls=tp>=0?'up':'down',sg=tp>=0?'+':'';
+  document.getElementById('total-profit').className='val '+cls;
+  document.getElementById('total-profit').textContent=sg+'¥'+tp.toFixed(2);
+  document.getElementById('profit-pct').className='val '+cls;
+  document.getElementById('profit-pct').textContent=sg+pct.toFixed(2)+'%';
+  document.getElementById('hold-val').textContent='¥'+mv.toFixed(2);
+}
+
+// ============ 更新持仓 ============
+function updatePortfolio(){
+  let h='',has=false;
+  for(let code in holdings){
+    let hd=holdings[code];if(hd.shares<=0)continue;has=true;
+    let s=STOCKS[code],mv=hd.shares*s.price,cs=hd.shares*hd.avg_cost,pf=mv-cs,pct=cs>0?(pf/cs*100):0;
+    let cls=pf>=0?'up':'down',sg=pf>=0?'+':'';
+    h+=`<div class="pos-item"><div><div class="pn">${s.name}</div><div style="color:#8b949e">${hd.shares}股 × ¥${s.price.toFixed(2)}</div></div><div style="text-align:right"><div class="pn ${cls}">${sg}¥${pf.toFixed(2)}</div><div class="${cls}">${sg}${pct.toFixed(2)}%</div></div></div>`;
+  }
+  if(!has)h='<div style="color:#8b949e;font-size:11px;padding:6px 0">暂无持仓</div>';
+  document.getElementById('plist').innerHTML=h;
+}
+
+// ============ K线图 ============
+function renderChart(){
+  let dom=document.getElementById('kline-chart');
+  if(!chart){chart=echarts.init(dom,'dark');window.addEventListener('resize',()=>chart.resize());}
+  let data=klines[curStock].slice(-kDays);
+  let dates=data.map(d=>d.date),ohlc=data.map(d=>[d.open,d.close,d.low,d.high]),vols=data.map(d=>d.volume);
+  chart.setOption({
+    backgroundColor:'#0d1117',
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#161b22',borderColor:'#30363d',textStyle:{color:'#c9d1d9',fontSize:11},
+      formatter:function(p){if(!p[0])return'';let d=p[0].data,c=((d[2]-d[1])/d[1]*100).toFixed(2),s=c>=0?'+':'',cl=c>=0?'#e15241':'#3fb950';return`<b>${p[0].axisValue}</b><br/>开:<span style="color:${cl}">${d[1].toFixed(2)}</span> 收:<span style="color:${cl}">${d[2].toFixed(2)}</span> 涨跌:<span style="color:${cl}">${s}${c}%</span><br/>高:${d[4].toFixed(2)} 低:${d[3].toFixed(2)} 量:${(p[1]?.data/10000).toFixed(0)}万手`;}},
+    grid:[{left:'8%',right:'3%',top:'5%',height:'60%'},{left:'8%',right:'3%',top:'72%',height:'20%'}],
+    xAxis:[{type:'category',data:dates,gridIndex:0,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'category',data:dates,gridIndex:1,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{show:false}}],
+    yAxis:[{type:'value',gridIndex:0,scale:true,splitLine:{lineStyle:{color:'#21262d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'value',gridIndex:1,axisLabel:{color:'#8b949e',fontSize:8}}],
+    series:[
+      {name:'K线',type:'candlestick',xAxisIndex:0,yAxisIndex:0,data:ohlc,itemStyle:{color:'#e15241',color0:'#3fb950',borderColor:'#e15241',borderColor0:'#3fb950'}},
+      {name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vols,itemStyle:{color:function(p){let i=p.dataIndex;return i<1?'#8b949e':(ohlc[i][2]>=ohlc[i][1]?'#e15241':'#3fb950');}}}
+    ]
+  },true);
+}
+
+function setDays(d){kDays=d;let btns=document.querySelectorAll('.ktools button');btns.forEach(b=>b.classList.remove('active'));event.target.classList.add('active');renderChart();}
+
+// ============ 交易 ============
+function setAction(a){action=a;let btns=document.querySelectorAll('.ttabs button');btns.forEach(b=>b.classList.remove('active'));if(a==='buy'){btns[0].classList.add('active');document.getElementById('tbtn').className='btn buy';document.getElementById('tbtn').textContent='买入';}else{btns[1].classList.add('active');document.getElementById('tbtn').className='btn sell';document.getElementById('tbtn').textContent='卖出';}updateCalc();}
+function updateCalc(){
+  let s=STOCKS[curStock],sh=parseInt(document.getElementById('shares').value)||0,am=sh*s.price;
+  if(action==='buy')document.getElementById('calc').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+balance.toFixed(2);
+  else{let h=holdings[curStock],mx=h?h.shares:0;document.getElementById('calc').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股';}
+}
+function executeTrade(){
+  let s=STOCKS[curStock],sh=parseInt(document.getElementById('shares').value)||0;
+  if(sh<=0)return showMsg('请输入有效股数','err');
+  if(action==='buy'){
+    let cs=s.price*sh;if(balance<cs)return showMsg('余额不足！需要 ¥'+cs.toFixed(2)+'，当前余额 ¥'+balance.toFixed(2),'err');
+    balance-=cs;if(!holdings[curStock])holdings[curStock]={shares:0,avg_cost:0};
+    let h=holdings[curStock],tc=h.shares*h.avg_cost+cs;h.shares+=sh;h.avg_cost=tc/h.shares;
+    showMsg('✅ 买入成功！'+s.name+' '+sh+'股 @ ¥'+s.price.toFixed(2),'suc');
+  }else{
+    if(!holdings[curStock]||holdings[curStock].shares<sh)return showMsg('持仓不足！','err');
+    balance+=s.price*sh;holdings[curStock].shares-=sh;if(holdings[curStock].shares===0)delete holdings[curStock];
+    showMsg('✅ 卖出成功！'+s.name+' '+sh+'股 @ ¥'+s.price.toFixed(2),'suc');
+  }
+  save();updateTrade();updateOverview();updatePortfolio();renderStockList();
+}
+function resetAccount(){if(!confirm('确定重置账户？'))return;balance=900;holdings={};save();updateTrade();updateOverview();updatePortfolio();renderStockList();showMsg('✅ 账户已重置，余额 ¥900.00','suc');}
+function showMsg(t,c){let m=document.getElementById('msg');m.textContent=t;m.className='msg '+c;m.style.display='block';setTimeout(()=>m.style.display='none',2500);}
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement===document.getElementById('shares'))executeTrade();});
+
+// ============ 启动 ============
+load();if(balance===0&&Object.keys(holdings).length===0){balance=900;save();}
+for(let code in STOCKS)klines[code]=genKlines(code);
+renderStockList();updateTitle();updateTrade();updateOverview();updatePortfolio();renderChart();
+</script>
+</body>
+</html>
