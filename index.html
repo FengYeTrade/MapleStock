@@ -529,7 +529,7 @@ body{
 <div class="header">
   <div class="logo">🍁 枫叶炒股</div>
   <div class="right">
-    <div class="bal" id="header-balance">¥900.00</div>
+    <div class="bal" id="header-balance">¥900,000.00</div>
     <div class="user" id="header-user" onclick="doLogout()"></div>
   </div>
 </div>
@@ -585,7 +585,7 @@ body{
   <div class="page" id="page-holdings">
     <div class="holdings-pg">
       <div class="overview">
-        <div class="ov-card"><div class="ov-label">总资产</div><div class="ov-value" style="color:var(--blu)" id="ov-total">¥900.00</div></div>
+        <div class="ov-card"><div class="ov-label">总资产</div><div class="ov-value" style="color:var(--blu)" id="ov-total">¥900,000.00</div></div>
         <div class="ov-card"><div class="ov-label">持仓市值</div><div class="ov-value" style="color:var(--acc)" id="ov-market">¥0.00</div></div>
         <div class="ov-card"><div class="ov-label">总盈亏</div><div class="ov-value" id="ov-pnl">¥0.00</div></div>
       </div>
@@ -630,7 +630,7 @@ const STOCKS = {
 let state = {
   prices: {},        // {code: number}
   klines: {},        // {code: [{dt,o,c,h,l,v}]}
-  balance: 900,
+  balance: 900000,
   holdings: {},      // {code: {shares, avgCost}}
   bubbles: {},       // {code: {bought, sold}}
   selected: '600519',
@@ -653,29 +653,50 @@ function hashPassword(pw){
   return h.toString(36)+'_'+pw.length;
 }
 function fmt(n){return n.toFixed(2)}
+function fmtMoney(n){
+  let parts=n.toFixed(2).split('.');
+  parts[0]=parts[0].replace(/\B(?=(\d{3})+(?!\d))/g,',');
+  return parts.join('.');
+}
 function pct(a,b){return b===0?0:((a-b)/b*100);}
 
-// ============ 泡沫计算 ============
+// ============ 泡沫/收割计算 ============
+// 泡沫指数：净买入占总持仓的比例，越买越涨
 function getBubblePct(code){
   let b=state.bubbles[code]||{bought:0,sold:0};
   let net=b.bought-b.sold;
   if(net<=0)return 0;
-  return Math.min(100,Math.round(net*0.5));
+  // 涨得快，让用户上头
+  return Math.min(100,Math.round(net*2));
 }
 function getBubbleLevel(code){
   let p=getBubblePct(code);
-  if(p>=95)return'crash';
-  if(p>=70)return'danger';
-  if(p>=40)return'warn';
+  if(p>=100)return'crash';  // 满了就收割
+  if(p>=85)return'danger';
+  if(p>=60)return'warn';
   return'safe';
 }
+// 价格增长：买得越多涨得越猛，诱人得很
 function calcPrice(code){
   let base=STOCKS[code].base;
   let b=state.bubbles[code]||{bought:0,sold:0};
   let net=b.bought-b.sold;
   if(net<=0)return base;
-  let mult=Math.min(3,1+net*0.005);
+  // 每净买1股涨2%，最高可涨到基础价的20倍
+  let mult=Math.min(20,1+net*0.02);
   return +(base*mult).toFixed(2);
+}
+// 检查用户是否重仓押注（总资产的占比）
+function getUserExposure(code){
+  let totalValue=state.balance;
+  for(let c in state.holdings){
+    let h=state.holdings[c];
+    if(h.shares>0)totalValue+=h.shares*state.prices[c];
+  }
+  let h=state.holdings[code];
+  if(!h||h.shares<=0)return 0;
+  let positionValue=h.shares*state.prices[code];
+  return totalValue>0?positionValue/totalValue:0;
 }
 
 // ============ 账户持久化 ============
@@ -725,7 +746,7 @@ function showAuth(mode){
   }else{
     card.innerHTML=
       '<div class="auth-title">🍁 注册账号</div>'+
-      '<div class="auth-sub">创建账户，即送 900 初始资金</div>'+
+      '<div class="auth-sub">创建账户，即送 900,000 初始资金</div>'+
       '<div class="auth-fields">'+
       '<input type="text" id="reg-user" placeholder="设置用户名（3-12位）" autocomplete="off">'+
       '<input type="password" id="reg-pass" placeholder="设置密码（至少4位）" autocomplete="new-password">'+
@@ -779,18 +800,18 @@ function handleRegister(){
   users[u]={pw:hashPassword(p),reg:Date.now()};
   saveUsers(users);
   loginUser(u);
-  toast('🎉 注册成功！赠送 900 初始资金','success');
+  toast('🎉 注册成功！赠送 900,000 初始资金','success');
 }
 function loginUser(u){
   state.currentUser=u;
   localStorage.setItem('ms2_last_user',u);
   let data=loadUserData(u);
   if(data){
-    state.balance=data.balance||900;
+    state.balance=data.balance||900000;
     state.holdings=data.holdings||{};
     state.bubbles=data.bubbles||{};
   }else{
-    state.balance=900;
+    state.balance=900000;
     state.holdings={};
     state.bubbles={};
   }
@@ -802,7 +823,7 @@ function doLogout(){
   if(!state.currentUser)return;
   if(!confirm('确定退出登录？'))return;
   state.currentUser=null;
-  state.balance=900;
+  state.balance=900000;
   state.holdings={};
   state.bubbles={};
   document.getElementById('header-user').textContent='';
@@ -973,11 +994,11 @@ function updateCost(){
   let sh=parseInt(document.getElementById('shares-input').value)||0;
   let amt=price*sh;
   if(state.action==='buy'){
-    document.getElementById('cost-hint').textContent='预计花费: ¥'+fmt(amt)+' | 可用: ¥'+fmt(state.balance);
+    document.getElementById('cost-hint').textContent='预计花费: ¥'+fmtMoney(amt)+' | 可用: ¥'+fmtMoney(state.balance);
   }else{
     let h=state.holdings[state.selected];
     let max=h?h.shares:0;
-    document.getElementById('cost-hint').textContent='预计收入: ¥'+fmt(amt)+' | 可卖: '+max+' 股';
+    document.getElementById('cost-hint').textContent='预计收入: ¥'+fmtMoney(amt)+' | 可卖: '+max+' 股';
   }
 }
 function renderTradeInfo(){
@@ -993,7 +1014,7 @@ function renderTradeInfo(){
     '<div class="si-row"><span class="si-price '+cls+'" id="trade-price">'+fmt(price)+'</span>'+
     '<span class="si-change '+cls+'">'+sg+fmt(chg)+' ('+sg+fmt(chgPct)+'%)</span></div>'+
     '<div class="si-detail">'+
-    '<span>可用资金</span><span>¥'+fmt(state.balance)+'</span>'+
+    '<span>可用资金</span><span>¥'+fmtMoney(state.balance)+'</span>'+
     '<span>持仓</span><span>'+(h?h.shares:0)+' 股</span>'+
     '<span>可买</span><span>'+canBuy+' 股</span>'+
     '</div>';
@@ -1012,23 +1033,21 @@ function renderBubbleGauge(){
   warn.style.color='';
   if(lvl==='crash'){
     fill.className='bg-fill danger';
-    warn.className='bg-warn show';
-    warn.textContent='⚠️ 即将砸盘！赶紧卖出！';
-    warn.style.color='var(--red)';
+    // 不提示，让用户继续买
   }else if(lvl==='danger'){
-    fill.className='bg-fill danger';
-    warn.className='bg-warn show';
-    warn.textContent='🔴 泡沫严重！随时可能崩盘';
-    warn.style.color='var(--red)';
-  }else if(lvl==='warn'){
     fill.className='bg-fill warn';
+    // 轻描淡写
     warn.className='bg-warn show';
-    warn.textContent='🟡 泡沫正在形成，注意风险';
+    warn.textContent='📈 市场情绪高涨';
     warn.style.color='var(--acc)';
+  }else{
+    // 安全区：完全不显示泡沫条，让用户放松警惕
+    fill.style.width='0%';
+    document.getElementById('bubble-val').textContent='--';
   }
 }
 
-// ============ 核心交易 ============
+// ============ 核心交易（收割版） ============
 function executeTrade(){
   let code=state.selected;
   let s=STOCKS[code];
@@ -1040,11 +1059,7 @@ function executeTrade(){
 
   if(state.action==='buy'){
     let cost=price*sh;
-    if(state.balance<cost)return toast('余额不足！需 ¥'+fmt(cost),'error');
-
-    // 检查砸盘
-    let lvl=getBubbleLevel(code);
-    if(lvl==='crash'){triggerCrash(code,cost,sh);return;}
+    if(state.balance<cost)return toast('余额不足！需 ¥'+fmtMoney(cost),'error');
 
     let oldPrice=price;
     state.balance-=cost;
@@ -1061,11 +1076,22 @@ function executeTrade(){
     updateKline(code,oldPrice,newPrice,sh);
     animatePrice(newPrice>oldPrice);
 
-    let newLvl=getBubbleLevel(code);
-    if(newLvl==='crash')toast('⚠️ 泡沫至极！下一笔买入将触发砸盘！','warning');
-    else if(newLvl==='danger')toast('🔴 泡沫严重！再买就要崩了！','warning');
+    // 收割逻辑：当用户重仓（>50%总资产）且泡沫满了，直接砸盘
+    let exposure=getUserExposure(code);
+    let bubblePct=getBubblePct(code);
+    if(bubblePct>=100 && exposure>=0.5){
+      triggerCrash(code,cost,sh);
+      return;
+    }
 
-    toast('✅ 买入成功！'+s.name+' '+sh+'股 @ ¥'+fmt(newPrice),'success');
+    let newLvl=getBubbleLevel(code);
+    if(newLvl==='crash'){
+      toast('📈 涨势如虹！继续加仓！','success');
+    }else if(newLvl==='danger'){
+      toast('🚀 股价飙升中！','success');
+    }else{
+      toast('✅ 买入成功！'+s.name+' '+sh+'股 @ ¥'+fmt(newPrice)+' (+'+(newPrice-oldPrice>=0?'+':'')+fmt(newPrice-oldPrice)+')','success');
+    }
   }else{
     if(!state.holdings[code]||state.holdings[code].shares<sh)return toast('持仓不足！','error');
 
@@ -1092,6 +1118,7 @@ function triggerCrash(code,cost,sh){
   let s=STOCKS[code];
   let oldPrice=state.prices[code];
 
+  // 先扣钱
   state.balance-=cost;
   if(!state.holdings[code])state.holdings[code]={shares:0,avgCost:0};
   let h=state.holdings[code];
@@ -1100,16 +1127,25 @@ function triggerCrash(code,cost,sh){
   h.avgCost=tc/h.shares;
   state.bubbles[code].bought+=sh;
 
-  let crashRatio=0.2+Math.random()*0.2;
+  // 砸盘：跌到当前价的 2%~5%，几乎归零
+  let crashRatio=0.02+Math.random()*0.03;
   let crashPrice=+(oldPrice*crashRatio).toFixed(2);
-  crashPrice=Math.max(STOCKS[code].base*0.5,crashPrice);
+  // 最低不能低于基础价的 1%
+  crashPrice=Math.max(STOCKS[code].base*0.01,crashPrice);
   state.prices[code]=crashPrice;
   state.bubbles[code]={bought:0,sold:0};
 
   updateKline(code,oldPrice,crashPrice,sh);
   triggerFlash();
 
-  toast('💥 砸盘了！'+s.name+' 暴跌至 ¥'+fmt(crashPrice)+'！泡沫破裂！','crash');
+  // 计算用户亏了多少
+  let loss=0;
+  for(let c in state.holdings){
+    let hh=state.holdings[c];
+    if(hh.shares>0)loss+=hh.shares*(oldPrice-state.prices[c]);
+  }
+
+  toast('💥 庄家砸盘！'+s.name+' 从 ¥'+fmt(oldPrice)+' 暴跌至 ¥'+fmt(crashPrice)+'！血本无归！','crash');
 
   saveUserData();
   updateAll();
@@ -1155,9 +1191,9 @@ function renderHoldings(){
     marketValue+=mk;
     items.push({code,name:STOCKS[code].name,shares:h.shares,avgCost:h.avgCost,price,market:mk,profit,profitPct});
   }
-  let totalPnl=totalValue-900;
-  document.getElementById('ov-total').textContent='¥'+fmt(totalValue);
-  document.getElementById('ov-market').textContent='¥'+fmt(marketValue);
+  let totalPnl=totalValue-900000;
+  document.getElementById('ov-total').textContent='¥'+fmtMoney(totalValue);
+  document.getElementById('ov-market').textContent='¥'+fmtMoney(marketValue);
   let pnlEl=document.getElementById('ov-pnl');
   pnlEl.textContent=(totalPnl>=0?'+':'')+'¥'+fmt(totalPnl);
   pnlEl.className='ov-value '+(totalPnl>=0?'up':'down');
@@ -1185,7 +1221,7 @@ function renderHoldings(){
 }
 function resetAccount(){
   if(!confirm('确定重置账户？所有持仓和交易记录将被清除。'))return;
-  state.balance=900;
+  state.balance=900000;
   state.holdings={};
   state.bubbles={};
   saveUserData();
@@ -1196,7 +1232,7 @@ function resetAccount(){
 // ============ 同步更新 ============
 function updateAll(){
   updateStockPrices();
-  document.getElementById('header-balance').textContent='¥'+fmt(state.balance);
+  document.getElementById('header-balance').textContent='¥'+fmtMoney(state.balance);
   renderTradeInfo();
   renderBubbleGauge();
   renderHoldings();
@@ -1230,7 +1266,7 @@ function initApp(){
   renderTradeInfo();
   renderBubbleGauge();
   renderHoldings();
-  document.getElementById('header-balance').textContent='¥'+fmt(state.balance);
+  document.getElementById('header-balance').textContent='¥'+fmtMoney(state.balance);
 }
 
 // 启动
@@ -1241,7 +1277,7 @@ function initApp(){
     if(users[lastUser]){
       state.currentUser=lastUser;
       let data=loadUserData(lastUser);
-      if(data){state.balance=data.balance||900;state.holdings=data.holdings||{};state.bubbles=data.bubbles||{};}
+      if(data){state.balance=data.balance||900000;state.holdings=data.holdings||{};state.bubbles=data.bubbles||{};}
       document.getElementById('header-user').textContent=lastUser;
       initApp();
       return;
