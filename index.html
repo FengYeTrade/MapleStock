@@ -114,24 +114,25 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .toast.crash{background:#3d0a0a;border:1px solid var(--r);color:var(--r);font-size:16px;padding:14px 24px}
 
 /* 登录/注册弹层 */
-.auth-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:none;align-items:center;justify-content:center;padding:20px}
-.auth-box{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;width:100%;max-width:360px;animation:pop .25s}
-@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
-.auth-box .at{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--o)}
-.auth-box .as{font-size:12px;color:var(--sub);text-align:center;margin-bottom:20px}
+.auth-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.94);z-index:1000;display:none}
+.auth-overlay.on{display:flex;align-items:center;justify-content:center;flex-direction:column;padding:20px}
+.auth-box{background:var(--card);border:1px solid var(--bd);border-radius:20px;padding:32px 24px 24px;width:calc(100vw - 40px);max-width:360px;display:flex;flex-direction:column;animation:pop .3s;box-shadow:0 20px 60px rgba(0,0,0,0.6)}
+@keyframes pop{from{opacity:0;transform:scale(.85)}to{opacity:1;transform:scale(1)}}
+.auth-box .at{font-size:24px;font-weight:800;text-align:center;margin-bottom:6px;color:var(--o);line-height:1.3}
+.auth-box .as{font-size:13px;color:var(--sub);text-align:center;margin-bottom:24px;line-height:1.5}
 .auth-box .af{display:flex;flex-direction:column;gap:12px}
-.auth-box .af input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-size:15px;outline:none;transition:border-color .2s}
+.auth-box .af input{width:100%;padding:14px 16px;background:var(--bg);border:1px solid var(--bd);border-radius:12px;color:var(--tx);font-size:16px;outline:none;transition:border-color .2s;box-sizing:border-box}
 .auth-box .af input:focus{border-color:var(--o)}
-.auth-box .af input::placeholder{color:var(--sub)}
+.auth-box .af input::placeholder{color:var(--sub);font-size:14px}
 .auth-box .captcha-row{display:flex;gap:10px;align-items:center}
 .auth-box .captcha-row input{flex:1}
-.auth-box .captcha-box{background:linear-gradient(135deg,#1a2332,#0d1a26);border:1px solid var(--bd);border-radius:8px;padding:8px 16px;font-size:22px;font-weight:900;letter-spacing:4px;color:var(--o);cursor:pointer;min-width:100px;text-align:center;user-select:none;font-family:'Courier New',monospace;text-decoration:line-through;position:relative}
-.auth-box .captcha-box::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 20 5, 40 15 T 80 10 T 120 15' stroke='%23ff6b3588' fill='none' stroke-width='1.5'/%3E%3Cpath d='M5 20 Q 25 12, 50 20 T 90 18 T 120 22' stroke='%2358a6ff88' fill='none' stroke-width='1'/%3E%3C/svg%3E") center/cover no-repeat;border-radius:8px;pointer-events:none}
-.auth-box .auth-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--o);transition:all .15s;margin-top:4px}
+.auth-box .captcha-box{background:linear-gradient(135deg,#1a2332,#0d1a26);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;font-size:24px;font-weight:900;letter-spacing:5px;color:var(--o);cursor:pointer;min-width:105px;text-align:center;user-select:none;font-family:'Courier New',monospace;text-decoration:line-through;position:relative;flex-shrink:0}
+.auth-box .captcha-box::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 20 5, 40 15 T 80 10 T 120 15' stroke='%23ff6b3588' fill='none' stroke-width='1.5'/%3E%3Cpath d='M5 20 Q 25 12, 50 20 T 90 18 T 120 22' stroke='%2358a6ff88' fill='none' stroke-width='1'/%3E%3C/svg%3E") center/cover no-repeat;border-radius:10px;pointer-events:none}
+.auth-box .auth-btn{width:100%;padding:14px;border:none;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--o);transition:all .15s;margin-top:4px;letter-spacing:2px}
 .auth-box .auth-btn:active{transform:scale(.98);opacity:.85}
 .auth-box .auth-btn:disabled{opacity:.5;cursor:not-allowed}
-.auth-box .switch{text-align:center;font-size:12px;color:var(--sub);margin-top:16px;cursor:pointer}
-.auth-box .switch span{color:var(--b);text-decoration:underline}
+.auth-box .switch{text-align:center;font-size:13px;color:var(--sub);margin-top:18px;cursor:pointer}
+.auth-box .switch span{color:var(--b);text-decoration:underline;font-weight:600}
 .auth-box .switch span:hover{color:var(--o)}
 
 /* 桌面端 */
@@ -288,37 +289,28 @@ function genCaptcha(){
 
 // ============ 登录/注册界面 ============
 function showAuth(mode){
-  let box=document.getElementById('auth-box');
-  let captcha=genCaptcha();
+  var box=document.getElementById('auth-box');
+  var captcha=genCaptcha();
+  var overlay=document.getElementById('auth-overlay');
   if(mode==='login'){
-    box.innerHTML=`
-      <div class="at">🍁 欢迎回来</div>
-      <div class="as">登录你的枫叶炒股账户</div>
-      <div class="af">
-        <input type="text" id="lu" placeholder="用户名" autocomplete="username">
-        <input type="password" id="lp" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-        <button class="auth-btn" onclick="doLogin()">登 录</button>
-      </div>
-      <div class="switch">还没有账号？<span onclick="showAuth('register')">立即注册</span></div>`;
-    setTimeout(()=>document.getElementById('lu').focus(),200);
+    box.innerHTML='<div class="at">🍁 欢迎回来</div><div class="as">登录你的枫叶炒股账户</div><div class="af"><input type="text" id="lu" placeholder="用户名" autocomplete="username"><input type="password" id="lp" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"><button class="auth-btn" onclick="doLogin()">登 录</button></div><div class="switch">还没有账号？<span onclick="showAuth(\'register\')">立即注册</span></div>';
+    setTimeout(function(){var el=document.getElementById('lu');if(el)el.focus();},200);
   }else{
-    box.innerHTML=`
-      <div class="at">🍁 注册账号</div>
-      <div class="as">创建你的枫叶炒股账户，送 900 初始资金</div>
-      <div class="af">
-        <input type="text" id="ru" placeholder="设置用户名（3-12位）" autocomplete="off">
-        <input type="password" id="rp" placeholder="设置密码（至少4位）" autocomplete="new-password">
-        <input type="password" id="rp2" placeholder="确认密码" autocomplete="new-password">
-        <div class="captcha-row">
-          <input type="text" id="rc" placeholder="输入验证码结果" autocomplete="off" onkeydown="if(event.key==='Enter')doRegister()">
-          <div class="captcha-box" onclick="genCaptcha();showAuth('register')">${captcha}</div>
-        </div>
-        <button class="auth-btn" onclick="doRegister()">注 册</button>
-      </div>
-      <div class="switch">已有账号？<span onclick="showAuth('login')">去登录</span></div>`;
-    setTimeout(()=>document.getElementById('ru').focus(),200);
+    box.innerHTML='<div class="at">🍁 注册账号</div><div class="as">创建你的枫叶炒股账户，送 900 初始资金</div><div class="af"><input type="text" id="ru" placeholder="设置用户名（3-12位）" autocomplete="off"><input type="password" id="rp" placeholder="设置密码（至少4位）" autocomplete="new-password"><input type="password" id="rp2" placeholder="确认密码" autocomplete="new-password"><div class="captcha-row"><input type="text" id="rc" placeholder="输入验证码结果" autocomplete="off" onkeydown="if(event.key===\'Enter\')doRegister()"><div class="captcha-box" onclick="refreshCaptcha()">'+captcha+'</div></div><button class="auth-btn" onclick="doRegister()">注 册</button></div><div class="switch">已有账号？<span onclick="showAuth(\'login\')">去登录</span></div>';
+    setTimeout(function(){var el=document.getElementById('ru');if(el)el.focus();},200);
   }
-  document.getElementById('auth-overlay').style.display='flex';
+  overlay.classList.add('on');
+  overlay.style.display='flex';
+  overlay.style.alignItems='center';
+  overlay.style.justifyContent='center';
+  overlay.style.flexDirection='column';
+  overlay.style.padding='20px';
+}
+function refreshCaptcha(){
+  var box=document.getElementById('auth-box');
+  var captcha=genCaptcha();
+  var cb=box.querySelector('.captcha-box');
+  if(cb)cb.textContent=captcha;
 }
 function doLogin(){
   let u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
@@ -330,7 +322,7 @@ function doLogin(){
   if(users[u].pw!==hpw(p))return stt('密码错误','er');
   curUser=u;localStorage.setItem('ms_last_user',u);
   let d=loadUserData(u);ba=d.ba;ho=d.ho;bp=d.bp||{};
-  document.getElementById('auth-overlay').style.display='none';
+  var ao=document.getElementById('auth-overlay');ao.classList.remove('on');ao.style.display='none';
   document.getElementById('hu').textContent=u;
   initApp();stt('✅ 欢迎回来，'+u+'！','ok');
 }
@@ -349,7 +341,7 @@ function doRegister(){
   users[u]={pw:hpw(p),reg:Date.now()};saveUsers(users);
   curUser=u;localStorage.setItem('ms_last_user',u);
   ba=900;ho={};bp={};saveUserData();
-  document.getElementById('auth-overlay').style.display='none';
+  var ao=document.getElementById('auth-overlay');ao.classList.remove('on');ao.style.display='none';
   document.getElementById('hu').textContent=u;
   initApp();stt('🎉 注册成功！赠送 900 初始资金','ok');
 }
@@ -628,7 +620,7 @@ window.addEventListener('resize',()=>{if(chart)chart.resize();});
   let lastUser=localStorage.getItem('ms_last_user');
   if(lastUser){
     let users=getUsers();
-    if(users[lastUser]){curUser=lastUser;let d=loadUserData(lastUser);ba=d.ba;ho=d.ho;bp=d.bp||{};document.getElementById('hu').textContent=lastUser;document.getElementById('auth-overlay').style.display='none';initApp();return;}
+    if(users[lastUser]){curUser=lastUser;let d=loadUserData(lastUser);ba=d.ba;ho=d.ho;bp=d.bp||{};document.getElementById('hu').textContent=lastUser;var ao=document.getElementById('auth-overlay');ao.classList.remove('on');ao.style.display='none';initApp();return;}
   }
   showAuth('login');
 })();
