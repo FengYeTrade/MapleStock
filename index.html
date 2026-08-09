@@ -11,7 +11,10 @@
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none}
 .hd{height:var(--hd);min-height:var(--hd);background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:10}
 .hd .logo{font-size:14px;font-weight:700;color:var(--o)}
+.hd .rhd{display:flex;align-items:center;gap:10px}
 .hd .bal{font-size:13px;color:var(--g);font-weight:700}
+.hd .usr{font-size:11px;color:var(--sub);cursor:pointer;padding:3px 8px;border:1px solid var(--bd);border-radius:12px}
+.hd .usr:hover{color:var(--tx);border-color:var(--r)}
 .main{flex:1;overflow:hidden;position:relative}
 .pg{position:absolute;top:0;left:0;width:100%;height:100%;display:none;flex-direction:column;overflow-y:auto;-webkit-overflow-scrolling:touch}
 .pg.on{display:flex}
@@ -82,6 +85,27 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .toast.ok{background:#1a4332;border:1px solid var(--g);color:var(--g)}
 .toast.er{background:#3d1f1a;border:1px solid var(--r);color:var(--r)}
 
+/* 登录/注册弹层 */
+.auth-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
+.auth-box{background:var(--card);border:1px solid var(--bd);border-radius:16px;padding:24px;width:100%;max-width:360px;animation:pop .25s}
+@keyframes pop{from{opacity:0;transform:scale(.9)}to{opacity:1;transform:scale(1)}}
+.auth-box .at{font-size:20px;font-weight:700;text-align:center;margin-bottom:6px;color:var(--o)}
+.auth-box .as{font-size:12px;color:var(--sub);text-align:center;margin-bottom:20px}
+.auth-box .af{display:flex;flex-direction:column;gap:12px}
+.auth-box .af input{width:100%;padding:12px 14px;background:var(--bg);border:1px solid var(--bd);border-radius:10px;color:var(--tx);font-size:15px;outline:none;transition:border-color .2s}
+.auth-box .af input:focus{border-color:var(--o)}
+.auth-box .af input::placeholder{color:var(--sub)}
+.auth-box .captcha-row{display:flex;gap:10px;align-items:center}
+.auth-box .captcha-row input{flex:1}
+.auth-box .captcha-box{background:linear-gradient(135deg,#1a2332,#0d1a26);border:1px solid var(--bd);border-radius:8px;padding:8px 16px;font-size:22px;font-weight:900;letter-spacing:4px;color:var(--o);cursor:pointer;min-width:100px;text-align:center;user-select:none;font-family:'Courier New',monospace;text-decoration:line-through;position:relative}
+.auth-box .captcha-box::after{content:'';position:absolute;top:0;left:0;width:100%;height:100%;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 10 Q 20 5, 40 15 T 80 10 T 120 15' stroke='%23ff6b3588' fill='none' stroke-width='1.5'/%3E%3Cpath d='M5 20 Q 25 12, 50 20 T 90 18 T 120 22' stroke='%2358a6ff88' fill='none' stroke-width='1'/%3E%3C/svg%3E") center/cover no-repeat;border-radius:8px;pointer-events:none}
+.auth-box .auth-btn{width:100%;padding:13px;border:none;border-radius:10px;font-size:16px;font-weight:700;cursor:pointer;color:#fff;background:var(--o);transition:all .15s;margin-top:4px}
+.auth-box .auth-btn:active{transform:scale(.98);opacity:.85}
+.auth-box .auth-btn:disabled{opacity:.5;cursor:not-allowed}
+.auth-box .switch{text-align:center;font-size:12px;color:var(--sub);margin-top:16px;cursor:pointer}
+.auth-box .switch span{color:var(--b);text-decoration:underline}
+.auth-box .switch span:hover{color:var(--o)}
+
 /* 桌面端 */
 @media(min-width:768px){
   .mp{flex-direction:row}
@@ -94,7 +118,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 </head>
 <body>
 
-<div class="hd"><div class="logo">🍁 枫叶炒股</div><div class="bal" id="hb">¥900.00</div></div>
+<!-- 登录/注册弹层 -->
+<div class="auth-overlay" id="auth-overlay">
+  <div class="auth-box" id="auth-box"></div>
+</div>
+
+<div class="hd">
+  <div class="logo">🍁 枫叶炒股</div>
+  <div class="rhd"><div class="bal" id="hb">¥900.00</div><span class="usr" id="hu" onclick="lgout()" title="退出登录"></span></div>
+</div>
 
 <div class="main">
   <div class="pg on" id="pg-market">
@@ -146,15 +178,166 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 <div class="toast" id="toast" style="display:none"></div>
 
 <script>
+// ============ 股票配置 ============
 const SD={"000001":{n:"平安银行",b:12.5,v:0.003},"600519":{n:"贵州茅台",b:1680,v:0.002},"000858":{n:"五粮液",b:156.8,v:0.0025},"601318":{n:"中国平安",b:45.2,v:0.002},"600036":{n:"招商银行",b:38.6,v:0.002},"300750":{n:"宁德时代",b:210.5,v:0.003},"002594":{n:"比亚迪",b:268.3,v:0.0025},"688981":{n:"中芯国际",b:52.4,v:0.004},"300059":{n:"东方财富",b:18.9,v:0.0035},"600276":{n:"恒瑞医药",b:48.7,v:0.0025}};
-let st={},kl={},ba=900,ho={},selCode='600519',ac='buy',krg=30,chart=null;
 
+// ============ 全局状态 ============
+let st={},kl={},ba=900,ho={},selCode='600519',ac='buy',krg=30,chart=null;
+let curUser=null;
+
+// ============ 工具函数 ============
 function gs(m,s){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
-function sv(){localStorage.setItem('msb',ba);localStorage.setItem('msh',JSON.stringify(ho))}
-function ld(){let b=localStorage.getItem('msb');if(b!==null)ba=parseFloat(b);let h=localStorage.getItem('msh');if(h!==null)ho=JSON.parse(h)}
 function da(n){let d=new Date();d.setDate(d.getDate()-n);return d}
 
-/* 生成历史K线 */
+// 简单的密码哈希（客户端专用，非安全用途）
+function hpw(pw){let h=0;for(let i=0;i<pw.length;i++){let c=pw.charCodeAt(i);h=((h<<5)-h)+c;h|=0}return h.toString(36)+'_'+pw.length}
+
+// ============ 账户系统 ============
+function getUsers(){try{return JSON.parse(localStorage.getItem('ms_users')||'{}')}catch(e){return{}}}
+function saveUsers(u){localStorage.setItem('ms_users',JSON.stringify(u))}
+function userKey(uname){return'msu_'+uname}
+function loadUserData(uname){
+  let d=localStorage.getItem(userKey(uname));
+  if(d){try{let o=JSON.parse(d);return{ba:o.ba||900,ho:o.ho||{}}}catch(e){}}
+  return{ba:900,ho:{}};
+}
+function saveUserData(uname){localStorage.setItem(userKey(uname),JSON.stringify({ba:ba,ho:ho}))}
+function sv(){saveUserData(curUser)}
+
+function lgout(){
+  if(!confirm('确定退出登录？'))return;
+  curUser=null;
+  ba=900;ho={};
+  document.getElementById('hu').textContent='';
+  showAuth('login');
+}
+
+// ============ 验证码 ============
+let captchaAnswer=0;
+function genCaptcha(){
+  let a=Math.floor(Math.random()*20)+1,b=Math.floor(Math.random()*20)+1;
+  let ops=['+','-','×'];
+  let op=ops[Math.floor(Math.random()*3)];
+  if(op==='+')captchaAnswer=a+b;
+  else if(op==='-')captchaAnswer=a-b;
+  else captchaAnswer=a*b;
+  return a+' '+op+' '+b+' = ?';
+}
+
+// ============ 登录/注册界面 ============
+function showAuth(mode){
+  let box=document.getElementById('auth-box');
+  let captcha=genCaptcha();
+  if(mode==='login'){
+    box.innerHTML=`
+      <div class="at">🍁 欢迎回来</div>
+      <div class="as">登录你的枫叶炒股账户</div>
+      <div class="af">
+        <input type="text" id="lu" placeholder="用户名" autocomplete="username">
+        <input type="password" id="lp" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="auth-btn" onclick="doLogin()">登 录</button>
+      </div>
+      <div class="switch">还没有账号？<span onclick="showAuth('register')">立即注册</span></div>`;
+    setTimeout(()=>document.getElementById('lu').focus(),200);
+  }else{
+    box.innerHTML=`
+      <div class="at">🍁 注册账号</div>
+      <div class="as">创建你的枫叶炒股账户，送 900 初始资金</div>
+      <div class="af">
+        <input type="text" id="ru" placeholder="设置用户名（3-12位）" autocomplete="off">
+        <input type="password" id="rp" placeholder="设置密码（至少4位）" autocomplete="new-password">
+        <input type="password" id="rp2" placeholder="确认密码" autocomplete="new-password">
+        <div class="captcha-row">
+          <input type="text" id="rc" placeholder="输入验证码结果" autocomplete="off" onkeydown="if(event.key==='Enter')doRegister()">
+          <div class="captcha-box" onclick="genCaptcha();showAuth('register')">${captcha}</div>
+        </div>
+        <button class="auth-btn" onclick="doRegister()">注 册</button>
+      </div>
+      <div class="switch">已有账号？<span onclick="showAuth('login')">去登录</span></div>`;
+    setTimeout(()=>document.getElementById('ru').focus(),200);
+  }
+  document.getElementById('auth-overlay').style.display='flex';
+}
+
+// ============ 登录逻辑 ============
+function doLogin(){
+  let u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
+  if(!u)return stt('请输入用户名','er');
+  if(u.length<3||u.length>12)return stt('用户名须为3-12位','er');
+  if(!p)return stt('请输入密码','er');
+
+  let users=getUsers();
+  if(!users[u])return stt('用户不存在，请先注册','er');
+  if(users[u].pw!==hpw(p))return stt('密码错误','er');
+
+  curUser=u;
+  localStorage.setItem('ms_last_user',u);
+  let d=loadUserData(u);
+  ba=d.ba;ho=d.ho;
+  document.getElementById('auth-overlay').style.display='none';
+  document.getElementById('hu').textContent=u;
+  initApp();
+  stt('✅ 欢迎回来，'+u+'！','ok');
+}
+
+// ============ 注册逻辑 ============
+function doRegister(){
+  let u=document.getElementById('ru').value.trim(),p=document.getElementById('rp').value,
+      p2=document.getElementById('rp2').value,c=document.getElementById('rc').value.trim();
+  if(!u)return stt('请输入用户名','er');
+  if(u.length<3||u.length>12)return stt('用户名须为3-12位','er');
+  if(!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(u))return stt('用户名只能包含中英文、数字、下划线','er');
+  if(!p)return stt('请输入密码','er');
+  if(p.length<4)return stt('密码至少4位','er');
+  if(p!==p2)return stt('两次密码不一致','er');
+  if(!c)return stt('请输入验证码','er');
+  if(parseInt(c)!==captchaAnswer)return stt('验证码错误，请重新输入','er');
+
+  let users=getUsers();
+  if(users[u])return stt('用户名已存在，换一个吧','er');
+
+  users[u]={pw:hpw(p),reg:Date.now()};
+  saveUsers(users);
+  curUser=u;
+  localStorage.setItem('ms_last_user',u);
+  ba=900;ho={};
+  saveUserData(u);
+  document.getElementById('auth-overlay').style.display='none';
+  document.getElementById('hu').textContent=u;
+  initApp();
+  stt('🎉 注册成功！赠送 900 初始资金','ok');
+}
+
+// ============ 页面切换 ============
+function go(p){
+  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
+  document.getElementById('pg-'+p).classList.add('on');
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
+  document.querySelector('[data-pg="'+p+'"]').classList.add('on');
+  if(p==='market'){setTimeout(()=>{if(chart)chart.resize();rc();},100)}
+  if(p==='trade')uti();
+  if(p==='hold')uh();
+}
+
+// ============ 股票列表 ============
+function rs(){
+  let h='';
+  for(let c in st){
+    let s=st[c],p=s.p||0,sel=c===selCode?' sel':'';
+    let lc=kl[c]?kl[c][kl[c].length-1].c:p;
+    let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
+    h+='<div class="sc'+sel+'" onclick="sel(\''+c+'\')"><div class="n">'+s.n+'</div><div class="p">'+p.toFixed(2)+'</div><div class="c '+cls+'">'+sg+pct.toFixed(2)+'%</div></div>';
+  }
+  document.getElementById('sl').innerHTML=h;
+}
+function us(){
+  let cs=document.querySelectorAll('.sc'),cds=Object.keys(st);
+  cs.forEach((c,i)=>{if(i>=cds.length)return;let s=st[cds[i]],p=s.p||0;let lc=kl[cds[i]]?kl[cds[i]][kl[cds[i]].length-1].c:p;let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';c.querySelector('.p').textContent=p.toFixed(2);let el=c.querySelector('.c');el.textContent=sg+pct.toFixed(2)+'%';el.className='c '+cls;});
+}
+function sel(cd){selCode=cd;rs();rc();uti()}
+function kr(d){krg=d;document.querySelectorAll('.kr b').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');rc()}
+
+// ============ K线图 ============
 function gk(cd){
   let s=SD[cd],bp=s.b,cur=bp*(0.7+Math.random()*0.6),k=[],nw=new Date();
   for(let i=200;i>0;i--){
@@ -167,127 +350,33 @@ function gk(cd){
   }
   return k;
 }
-
-/* 页面切换 */
-function go(p){
-  document.querySelectorAll('.pg').forEach(x=>x.classList.remove('on'));
-  document.getElementById('pg-'+p).classList.add('on');
-  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
-  document.querySelector('[data-pg="'+p+'"]').classList.add('on');
-  if(p==='market'){setTimeout(()=>{if(chart)chart.resize();rc();},100)}
-  if(p==='trade')uti();
-  if(p==='hold')uh();
-}
-
-/* 股票列表渲染 */
-function rs(){
-  let h='';
-  for(let c in st){
-    let s=st[c],p=s.p||0,sel=c===selCode?' sel':'';
-    let lc=kl[c]?kl[c][kl[c].length-1].c:p;
-    let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
-    h+='<div class="sc'+sel+'" onclick="sel(\''+c+'\')"><div class="n">'+s.n+'</div><div class="p">'+p.toFixed(2)+'</div><div class="c '+cls+'">'+sg+pct.toFixed(2)+'%</div></div>';
-  }
-  document.getElementById('sl').innerHTML=h;
-}
-
-/* 更新股票列表价格 */
-function us(){
-  let cs=document.querySelectorAll('.sc'),cds=Object.keys(st);
-  cs.forEach((c,i)=>{
-    if(i>=cds.length)return;
-    let s=st[cds[i]],p=s.p||0;
-    let lc=kl[cds[i]]?kl[cds[i]][kl[cds[i]].length-1].c:p;
-    let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
-    c.querySelector('.p').textContent=p.toFixed(2);
-    let el=c.querySelector('.c');el.textContent=sg+pct.toFixed(2)+'%';el.className='c '+cls;
-  });
-}
-
-function sel(cd){selCode=cd;rs();rc();uti()}
-function kr(d){krg=d;document.querySelectorAll('.kr b').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');rc()}
-
-/* 渲染K线图 */
 function rc(){
   let dom=document.getElementById('kc');
-  if(!chart){
-    chart=echarts.init(dom);
-    window.addEventListener('resize',()=>{if(chart)chart.resize();});
-  }
+  if(!chart){chart=echarts.init(dom);window.addEventListener('resize',()=>{if(chart)chart.resize();});}
   let k=(kl[selCode]||[]).slice(-krg);
   if(!k.length)return;
   let ds=k.map(d=>d.dt),oh=k.map(d=>[d.o,d.c,d.l,d.h]),vo=k.map(d=>d.v);
   chart.setOption({
-    backgroundColor:'#0d1117',
-    animation:false,
-    tooltip:{
-      trigger:'axis',axisPointer:{type:'cross'},
-      backgroundColor:'#161b22',borderColor:'#30363d',
-      textStyle:{color:'#c9d1d9',fontSize:11},
-      formatter:function(p){
-        if(!p||!p[0])return'';
-        let d=p[0].data,chg=((d[2]-d[1])/d[1]*100).toFixed(2),s=chg>=0?'+':'',cl=chg>=0?'#e15241':'#3fb950';
-        return'<b>'+p[0].axisValue+'</b><br/>开:<span style="color:'+cl+'">'+d[1].toFixed(2)+'</span> 收:<span style="color:'+cl+'">'+d[2].toFixed(2)+'</span> 涨跌:<span style="color:'+cl+'">'+s+chg+'%</span><br/>高:'+d[4].toFixed(2)+' 低:'+d[3].toFixed(2)+' 量:'+((p[1]?.data||0)/10000).toFixed(0)+'万手';
-      }
-    },
-    grid:[
-      {left:'8%',right:'4%',top:'5%',height:'62%'},
-      {left:'8%',right:'4%',top:'74%',height:'18%'}
-    ],
-    xAxis:[
-      {type:'category',data:ds,gridIndex:0,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{color:'#8b949e',fontSize:9}},
-      {type:'category',data:ds,gridIndex:1,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{show:false}}
-    ],
-    yAxis:[
-      {type:'value',gridIndex:0,scale:true,splitLine:{lineStyle:{color:'#21262d'}},axisLabel:{color:'#8b949e',fontSize:9}},
-      {type:'value',gridIndex:1,axisLabel:{color:'#8b949e',fontSize:8}}
-    ],
-    series:[
-      {name:'K线',type:'candlestick',xAxisIndex:0,yAxisIndex:0,data:oh,
-       itemStyle:{color:'#e15241',color0:'#3fb950',borderColor:'#e15241',borderColor0:'#3fb950'}},
-      {name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vo,
-       itemStyle:{color:function(p){let i=p.dataIndex;return oh[i]&&oh[i][2]>=oh[i][1]?'#e15241':'#3fb950'}}}
-    ]
+    backgroundColor:'#0d1117',animation:false,
+    tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#161b22',borderColor:'#30363d',textStyle:{color:'#c9d1d9',fontSize:11},
+      formatter:function(p){if(!p||!p[0])return'';let d=p[0].data,chg=((d[2]-d[1])/d[1]*100).toFixed(2),s=chg>=0?'+':'',cl=chg>=0?'#e15241':'#3fb950';return'<b>'+p[0].axisValue+'</b><br/>开:<span style="color:'+cl+'">'+d[1].toFixed(2)+'</span> 收:<span style="color:'+cl+'">'+d[2].toFixed(2)+'</span> 涨跌:<span style="color:'+cl+'">'+s+chg+'%</span><br/>高:'+d[4].toFixed(2)+' 低:'+d[3].toFixed(2)+' 量:'+((p[1]?.data||0)/10000).toFixed(0)+'万手';}},
+    grid:[{left:'8%',right:'4%',top:'5%',height:'62%'},{left:'8%',right:'4%',top:'74%',height:'18%'}],
+    xAxis:[{type:'category',data:ds,gridIndex:0,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'category',data:ds,gridIndex:1,axisLine:{lineStyle:{color:'#30363d'}},axisLabel:{show:false}}],
+    yAxis:[{type:'value',gridIndex:0,scale:true,splitLine:{lineStyle:{color:'#21262d'}},axisLabel:{color:'#8b949e',fontSize:9}},{type:'value',gridIndex:1,axisLabel:{color:'#8b949e',fontSize:8}}],
+    series:[{name:'K线',type:'candlestick',xAxisIndex:0,yAxisIndex:0,data:oh,itemStyle:{color:'#e15241',color0:'#3fb950',borderColor:'#e15241',borderColor0:'#3fb950'}},{name:'量',type:'bar',xAxisIndex:1,yAxisIndex:1,data:vo,itemStyle:{color:function(p){let i=p.dataIndex;return oh[i]&&oh[i][2]>=oh[i][1]?'#e15241':'#3fb950'}}}]
   },true);
 }
 
-/* 交易类型切换 */
-function sa(a){
-  ac=a;
-  let btns=document.querySelectorAll('.tab b');
-  btns.forEach(b=>b.classList.remove('on'));
-  if(a==='buy'){btns[0].classList.add('on');document.getElementById('sb').className='sb buy';document.getElementById('sb').textContent='买入'}
-  else{btns[1].classList.add('on');document.getElementById('sb').className='sb sell';document.getElementById('sb').textContent='卖出'}
-  uc();
-}
+// ============ 交易 ============
+function sa(a){ac=a;let btns=document.querySelectorAll('.tab b');btns.forEach(b=>b.classList.remove('on'));if(a==='buy'){btns[0].classList.add('on');document.getElementById('sb').className='sb buy';document.getElementById('sb').textContent='买入'}else{btns[1].classList.add('on');document.getElementById('sb').className='sb sell';document.getElementById('sb').textContent='卖出'}uc()}
 function qs(n){document.getElementById('sh').value=n;uc()}
-function qm(){
-  let s=st[selCode];if(!s)return;
-  if(ac==='buy')document.getElementById('sh').value=Math.floor(ba/s.p);
-  else{let h=ho[selCode];document.getElementById('sh').value=h?h.s:0}
-  uc();
-}
-function uc(){
-  let s=st[selCode];if(!s)return;
-  let sh=parseInt(document.getElementById('sh').value)||0,am=sh*s.p;
-  if(ac==='buy')document.getElementById('cl').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+ba.toFixed(2);
-  else{let h=ho[selCode],mx=h?h.s:0;document.getElementById('cl').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股'}
-}
+function qm(){let s=st[selCode];if(!s)return;if(ac==='buy')document.getElementById('sh').value=Math.floor(ba/s.p);else{let h=ho[selCode];document.getElementById('sh').value=h?h.s:0}uc()}
+function uc(){let s=st[selCode];if(!s)return;let sh=parseInt(document.getElementById('sh').value)||0,am=sh*s.p;if(ac==='buy')document.getElementById('cl').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+ba.toFixed(2);else{let h=ho[selCode],mx=h?h.s:0;document.getElementById('cl').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股'}}
+function uti(){let s=st[selCode];if(!s)return;let p=s.p||0,lc=kl[selCode]?kl[selCode][kl[selCode].length-1].c:p;let chg=p-lc,pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[selCode];document.getElementById('ti').innerHTML='<div class="r"><span class="tn">'+s.n+'</span><span style="font-size:11px;color:var(--sub)">'+selCode+'</span></div><div class="r"><span class="tp">'+p.toFixed(2)+'</span><span class="tc '+cls+'">'+sg+chg.toFixed(2)+' ('+sg+pct.toFixed(2)+'%)</span></div><div class="dt"><span>可用资金</span><span>¥'+ba.toFixed(2)+'</span><span>持仓</span><span>'+(h?h.s:0)+' 股</span><span>可买</span><span>'+Math.floor(ba/p)+' 股</span></div>';uc()}
 
-/* 更新交易页信息 */
-function uti(){
-  let s=st[selCode];if(!s)return;
-  let p=s.p||0,lc=kl[selCode]?kl[selCode][kl[selCode].length-1].c:p;
-  let chg=p-lc,pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[selCode];
-  document.getElementById('ti').innerHTML='<div class="r"><span class="tn">'+s.n+'</span><span style="font-size:11px;color:var(--sub)">'+selCode+'</span></div><div class="r"><span class="tp">'+p.toFixed(2)+'</span><span class="tc '+cls+'">'+sg+chg.toFixed(2)+' ('+sg+pct.toFixed(2)+'%)</span></div><div class="dt"><span>可用资金</span><span>¥'+ba.toFixed(2)+'</span><span>持仓</span><span>'+(h?h.s:0)+' 股</span><span>可买</span><span>'+Math.floor(ba/p)+' 股</span></div>';
-  uc();
-}
-
-/* 执行交易 — 只有交易时才触发价格变动 */
 function tr(){
   let s=st[selCode],sh=parseInt(document.getElementById('sh').value)||0;
   if(sh<=0)return stt('请输入有效股数','er');
-
   if(ac==='buy'){
     let totalCost=s.p*sh;
     if(ba<totalCost)return stt('余额不足！需 ¥'+totalCost.toFixed(2),'er');
@@ -295,7 +384,6 @@ function tr(){
     if(!ho[selCode])ho[selCode]={s:0,ac:0};
     let h=ho[selCode],tc=h.s*h.ac+totalCost;
     h.s+=sh;h.ac=tc/h.s;
-    // 买入推动价格上涨
     s.p=+(s.p*(1+0.0005*sh)).toFixed(2);
     stt('✅ 买入成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
   }else{
@@ -303,64 +391,50 @@ function tr(){
     ba+=s.p*sh;
     ho[selCode].s-=sh;
     if(ho[selCode].s<=0)delete ho[selCode];
-    // 卖出压低价格
     s.p=+(s.p*(1-0.0005*sh)).toFixed(2);
     stt('✅ 卖出成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
   }
-
-  // 交易后更新K线最后一根蜡烛
   let k=kl[selCode];
-  if(k&&k.length>0){
-    let last=k[k.length-1];
-    last.c=s.p;
-    last.h=Math.max(last.h,s.p);
-    last.l=Math.min(last.l,s.p);
-  }
-
+  if(k&&k.length>0){let last=k[k.length-1];last.c=s.p;last.h=Math.max(last.h,s.p);last.l=Math.min(last.l,s.p);}
   sv();us();uti();uh();ub();rc();rs();
 }
 
-/* 持仓页 */
+// ============ 持仓 ============
 function uh(){
   let tv=ba,mv=0,its=[];
-  for(let c in ho){
-    let h=ho[c];if(h.s<=0)continue;
-    let s=st[c];if(!s)continue;
-    let mk=h.s*s.p,ct=h.s*h.ac,pf=mk-ct,pc=ct>0?(pf/ct*100):0;
-    tv+=mk;mv+=mk;its.push({cd:c,nm:s.n,s:h.s,ac:h.ac,p:s.p,mk,pf,pc});
-  }
+  for(let c in ho){let h=ho[c];if(h.s<=0)continue;let s=st[c];if(!s)continue;let mk=h.s*s.p,ct=h.s*h.ac,pf=mk-ct,pc=ct>0?(pf/ct*100):0;tv+=mk;mv+=mk;its.push({cd:c,nm:s.n,s:h.s,ac:h.ac,p:s.p,mk,pf,pc});}
   let tp=tv-900;
   document.getElementById('hv').textContent='¥'+tv.toFixed(2);
   document.getElementById('hm').textContent='¥'+mv.toFixed(2);
-  let pe=document.getElementById('hp');
-  pe.textContent=(tp>=0?'+':'')+'¥'+tp.toFixed(2);
-  pe.className='v '+(tp>=0?'up':'dn');
+  let pe=document.getElementById('hp');pe.textContent=(tp>=0?'+':'')+'¥'+tp.toFixed(2);pe.className='v '+(tp>=0?'up':'dn');
   let ls=document.getElementById('pl');
-  if(!its.length){
-    ls.innerHTML='<div class="em"><div class="ic">📭</div><div>暂无持仓</div><div style="font-size:11px;margin-top:4px">去交易页买入股票吧</div></div>';
-    return;
-  }
-  let h='';
-  its.forEach(it=>{
-    let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';
-    h+='<div class="pi" onclick="selCode=\''+it.cd+'\';go(\'trade\');setTimeout(()=>uti(),200)"><div class="ph"><div><span class="pn">'+it.nm+'</span> <span class="pc">'+it.cd+'</span></div><span class="pp '+cls+'">'+sg+'¥'+it.pf.toFixed(2)+'</span></div><div class="pr"><span>持仓 <span>'+it.s+'股</span></span><span>成本 <span>¥'+it.ac.toFixed(2)+'</span></span><span>现价 <span>¥'+it.p.toFixed(2)+'</span></span><span>收益率 <span class="'+cls+'">'+sg+it.pc.toFixed(2)+'%</span></span></div></div>';
-  });
-  ls.innerHTML=h;
+  if(!its.length){ls.innerHTML='<div class="em"><div class="ic">📭</div><div>暂无持仓</div><div style="font-size:11px;margin-top:4px">去交易页买入股票吧</div></div>';return;}
+  let h='';its.forEach(it=>{let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';h+='<div class="pi" onclick="selCode=\''+it.cd+'\';go(\'trade\');setTimeout(()=>uti(),200)"><div class="ph"><div><span class="pn">'+it.nm+'</span> <span class="pc">'+it.cd+'</span></div><span class="pp '+cls+'">'+sg+'¥'+it.pf.toFixed(2)+'</span></div><div class="pr"><span>持仓 <span>'+it.s+'股</span></span><span>成本 <span>¥'+it.ac.toFixed(2)+'</span></span><span>现价 <span>¥'+it.p.toFixed(2)+'</span></span><span>收益率 <span class="'+cls+'">'+sg+it.pc.toFixed(2)+'%</span></span></div></div>';});ls.innerHTML=h;
 }
 
 function ub(){document.getElementById('hb').textContent='¥'+ba.toFixed(2)}
 function ra(){if(!confirm('确定重置账户？'))return;ba=900;ho={};sv();ub();uti();uh();stt('✅ 账户已重置','ok')}
 function stt(m,t){let el=document.getElementById('toast');el.textContent=m;el.className='toast '+t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2500)}
 
+// ============ 初始化应用 ============
+function initApp(){
+  for(let c in SD){kl[c]=gk(c);let lc=kl[c][kl[c].length-1].c;st[c]={n:SD[c].n,p:lc}}
+  rs();rc();uti();uh();ub();
+}
+
 // 键盘回车快捷交易
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement===document.getElementById('sh'))tr()});
-
-// 初始化
-ld();
-if(ba===0&&Object.keys(ho).length===0){ba=900;sv()}
-for(let c in SD){kl[c]=gk(c);let lc=kl[c][kl[c].length-1].c;st[c]={n:SD[c].n,p:lc}}
-rs();rc();uti();uh();ub();
 window.addEventListener('resize',()=>{if(chart)chart.resize();});
+
+// 启动：检查是否已登录
+(function(){
+  let lastUser=localStorage.getItem('ms_last_user');
+  if(lastUser){
+    let users=getUsers();
+    if(users[lastUser]){curUser=lastUser;let d=loadUserData(lastUser);ba=d.ba;ho=d.ho;document.getElementById('hu').textContent=lastUser;initApp();return;}
+  }
+  showAuth('login');
+})();
 </script>
 </body>
 </html>
