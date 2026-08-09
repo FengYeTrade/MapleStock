@@ -6,7 +6,7 @@
 <title>枫叶炒股</title>
 <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
 <style>
-:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#c9d1d9;--sub:#8b949e;--r:#e15241;--g:#3fb950;--o:#ff6b35;--b:#58a6ff;--nav:56px;--hd:44px}
+:root{--bg:#0d1117;--card:#161b22;--bd:#30363d;--tx:#c9d1d9;--sub:#8b949e;--r:#e15241;--g:#3fb950;--o:#ff6b35;--b:#58a6ff;--y:#f0c040;--nav:56px;--hd:44px}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei',sans-serif;background:var(--bg);color:var(--tx);height:100vh;height:100dvh;overflow:hidden;display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent;user-select:none}
 .hd{height:var(--hd);min-height:var(--hd);background:var(--card);border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between;padding:0 14px;z-index:10}
@@ -23,13 +23,22 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .mp{display:flex;flex-direction:column;flex:1;min-height:0}
 .slist{display:flex;gap:8px;padding:10px;overflow-x:auto;flex-shrink:0;-webkit-overflow-scrolling:touch}
 .slist::-webkit-scrollbar{display:none}
-.sc{flex:0 0 auto;min-width:85px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;cursor:pointer;text-align:center;transition:all .15s}
+.sc{flex:0 0 auto;min-width:85px;background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:8px 10px;cursor:pointer;text-align:center;transition:all .15s;position:relative;overflow:hidden}
 .sc:active{transform:scale(.96)}.sc.sel{border-color:var(--o);background:#1a2332}
-.sc .n{font-size:12px;font-weight:600;white-space:nowrap}
-.sc .p{font-size:15px;font-weight:700;margin:2px 0}
-.sc .c{font-size:10px}
+.sc .n{font-size:12px;font-weight:600;white-space:nowrap;position:relative;z-index:1}
+.sc .p{font-size:15px;font-weight:700;margin:2px 0;position:relative;z-index:1}
+.sc .c{font-size:10px;position:relative;z-index:1}
+/* 泡沫警示条 */
+.sc .bubble-bar{position:absolute;bottom:0;left:0;height:3px;background:var(--g);transition:width .3s,background .3s;z-index:0;border-radius:0 0 7px 7px}
+.sc .bubble-bar.warn{background:var(--y)}.sc .bubble-bar.danger{background:var(--r);animation:blink .5s infinite}
+@keyframes blink{50%{opacity:.4}}
+
 .ca{flex:1;display:flex;flex-direction:column;min-height:0}
 .cbox{flex:1;min-height:180px;position:relative}#kc{width:100%;height:100%}
+/* 砸盘闪屏 */
+.crash-flash{position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(255,0,0,0.15);pointer-events:none;opacity:0;transition:opacity .1s;z-index:5}
+.crash-flash.on{opacity:1;animation:cf .6s ease-out forwards}
+@keyframes cf{0%{opacity:1}100%{opacity:0}}
 .kr{display:flex;gap:4px;padding:6px 10px 10px;flex-shrink:0}
 .kr b{padding:4px 14px;background:var(--card);border:1px solid var(--bd);border-radius:14px;color:var(--sub);font-size:11px;cursor:pointer}
 .kr b.on{background:var(--o);color:#fff;border-color:var(--o)}
@@ -37,13 +46,24 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 /* 交易 */
 .tp{padding:14px}
-.ti{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:14px}
+.ti{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin-bottom:10px}
 .ti .r{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
 .ti .tn{font-size:16px;font-weight:700}
-.ti .tp{font-size:26px;font-weight:700}
+.ti .tp{font-size:26px;font-weight:700;transition:color .3s}
 .ti .tc{font-size:12px}
 .ti .dt{display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-top:8px;padding-top:10px;border-top:1px solid var(--bd)}
 .ti .dt span{color:var(--tx);font-weight:600}
+
+/* 泡沫仪表 */
+.bubble-meter{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px 16px;margin-bottom:14px}
+.bubble-meter .bm-label{display:flex;justify-content:space-between;font-size:11px;margin-bottom:6px}
+.bubble-meter .bm-label .l{color:var(--sub)}.bubble-meter .bm-label .r{font-weight:700}
+.bubble-meter .bm-track{height:8px;background:var(--bg);border-radius:4px;overflow:hidden}
+.bubble-meter .bm-fill{height:100%;border-radius:4px;transition:width .5s,background .5s;background:var(--g)}
+.bubble-meter .bm-fill.warn{background:var(--y)}.bubble-meter .bm-fill.danger{background:var(--r);animation:blink .5s infinite}
+.bubble-meter .bm-warn{font-size:10px;color:var(--r);margin-top:6px;text-align:center;font-weight:700;display:none}
+.bubble-meter .bm-warn.show{display:block;animation:blink .5s infinite}
+
 .tab{display:flex;gap:0;margin-bottom:14px}
 .tab b{flex:1;padding:10px;border:1px solid var(--bd);background:var(--bg);color:var(--tx);font-size:14px;font-weight:600;cursor:pointer}
 .tab b:first-child{border-radius:8px 0 0 8px}.tab b:last-child{border-radius:0 8px 8px 0}
@@ -59,6 +79,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 .fm .sb{width:100%;padding:12px;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;color:#fff;transition:all .15s}
 .fm .sb.buy{background:var(--r)}.fm .sb.sell{background:var(--g)}
 .fm .sb:active{transform:scale(.98);opacity:.85}
+
+/* 价格跳动动画 */
+@keyframes priceJump{0%{transform:scale(1)}30%{transform:scale(1.15)}100%{transform:scale(1)}}
+.price-jump{animation:priceJump .4s ease-out}
+@keyframes priceFall{0%{transform:scale(1)}30%{transform:scale(.85)}100%{transform:scale(1)}}
+.price-fall{animation:priceFall .4s ease-out}
 
 /* 持仓 */
 .hp{padding:14px}
@@ -84,6 +110,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 @keyframes ti{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 .toast.ok{background:#1a4332;border:1px solid var(--g);color:var(--g)}
 .toast.er{background:#3d1f1a;border:1px solid var(--r);color:var(--r)}
+.toast.warn{background:#3d2f0a;border:1px solid var(--y);color:var(--y)}
+.toast.crash{background:#3d0a0a;border:1px solid var(--r);color:var(--r);font-size:16px;padding:14px 24px}
 
 /* 登录/注册弹层 */
 .auth-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}
@@ -133,7 +161,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
     <div class="mp">
       <div class="slist" id="sl"></div>
       <div class="ca">
-        <div class="cbox"><div id="kc"></div></div>
+        <div class="cbox"><div id="kc"></div><div class="crash-flash" id="crash-flash"></div></div>
         <div class="kr">
           <b onclick="kr(30)" class="on">1月</b><b onclick="kr(60)">2月</b><b onclick="kr(90)">3月</b><b onclick="kr(200)">全部</b>
         </div>
@@ -143,6 +171,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
   <div class="pg" id="pg-trade">
     <div class="tp">
       <div class="ti" id="ti"></div>
+      <div class="bubble-meter" id="bm">
+        <div class="bm-label"><span class="l">📊 泡沫指数</span><span class="r" id="bm-val">--</span></div>
+        <div class="bm-track"><div class="bm-fill" id="bm-fill" style="width:0%"></div></div>
+        <div class="bm-warn" id="bm-warn"></div>
+      </div>
       <div class="tab">
         <b class="on buy" onclick="sa('buy')">买入</b><b class="sell" onclick="sa('sell')">卖出</b>
       </div>
@@ -179,18 +212,51 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 <script>
 // ============ 股票配置 ============
-const SD={"000001":{n:"平安银行",b:12.5,v:0.003},"600519":{n:"贵州茅台",b:1680,v:0.002},"000858":{n:"五粮液",b:156.8,v:0.0025},"601318":{n:"中国平安",b:45.2,v:0.002},"600036":{n:"招商银行",b:38.6,v:0.002},"300750":{n:"宁德时代",b:210.5,v:0.003},"002594":{n:"比亚迪",b:268.3,v:0.0025},"688981":{n:"中芯国际",b:52.4,v:0.004},"300059":{n:"东方财富",b:18.9,v:0.0035},"600276":{n:"恒瑞医药",b:48.7,v:0.0025}};
+const SD={"000001":{n:"平安银行",b:12.5},"600519":{n:"贵州茅台",b:1680},"000858":{n:"五粮液",b:156.8},"601318":{n:"中国平安",b:45.2},"600036":{n:"招商银行",b:38.6},"300750":{n:"宁德时代",b:210.5},"002594":{n:"比亚迪",b:268.3},"688981":{n:"中芯国际",b:52.4},"300059":{n:"东方财富",b:18.9},"600276":{n:"恒瑞医药",b:48.7}};
 
 // ============ 全局状态 ============
 let st={},kl={},ba=900,ho={},selCode='600519',ac='buy',krg=30,chart=null;
 let curUser=null;
+// 泡沫压力追踪：{code: {bought: totalShares, sold: totalShares}}
+let bp={};
 
 // ============ 工具函数 ============
 function gs(m,s){let u=0,v=0;while(u===0)u=Math.random();while(v===0)v=Math.random();return m+s*Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v)}
 function da(n){let d=new Date();d.setDate(d.getDate()-n);return d}
-
-// 简单的密码哈希（客户端专用，非安全用途）
 function hpw(pw){let h=0;for(let i=0;i<pw.length;i++){let c=pw.charCodeAt(i);h=((h<<5)-h)+c;h|=0}return h.toString(36)+'_'+pw.length}
+
+// ============ 泡沫/砸盘逻辑 ============
+function getBubbleRatio(cd){
+  let b=bp[cd]||{bought:0,sold:0};
+  let net=b.bought-b.sold;
+  if(net<=0)return 0;
+  // 泡沫指数 = 净买入 * 0.5% per share vs base price
+  return Math.min(1, net*0.005);
+}
+function getBubbleLevel(cd){
+  let r=getBubbleRatio(cd);
+  if(r>=0.95)return'crash';  // 即将砸盘
+  if(r>=0.7)return'danger';  // 危险
+  if(r>=0.4)return'warn';    // 警告
+  return'safe';
+}
+function getBubblePct(cd){
+  let b=bp[cd]||{bought:0,sold:0};
+  let net=b.bought-b.sold;
+  if(net<=0)return 0;
+  return Math.round(net*0.005*100);
+}
+// 根据泡沫压力计算价格
+function calcPrice(cd){
+  let base=SD[cd].b;
+  let b=bp[cd]||{bought:0,sold:0};
+  let net=b.bought-b.sold;
+  if(net<=0)return base;
+  // 价格 = 基础价 * (1 + 净买入 * 0.5%)
+  // 但最高不超过基础价的 3 倍
+  let mult=Math.min(3, 1+net*0.005);
+  return +(base*mult).toFixed(2);
+}
 
 // ============ 账户系统 ============
 function getUsers(){try{return JSON.parse(localStorage.getItem('ms_users')||'{}')}catch(e){return{}}}
@@ -198,16 +264,15 @@ function saveUsers(u){localStorage.setItem('ms_users',JSON.stringify(u))}
 function userKey(uname){return'msu_'+uname}
 function loadUserData(uname){
   let d=localStorage.getItem(userKey(uname));
-  if(d){try{let o=JSON.parse(d);return{ba:o.ba||900,ho:o.ho||{}}}catch(e){}}
-  return{ba:900,ho:{}};
+  if(d){try{let o=JSON.parse(d);return{ba:o.ba||900,ho:o.ho||{},bp:o.bp||{}}}catch(e){}}
+  return{ba:900,ho:{},bp:{}};
 }
-function saveUserData(uname){localStorage.setItem(userKey(uname),JSON.stringify({ba:ba,ho:ho}))}
-function sv(){saveUserData(curUser)}
+function saveUserData(){localStorage.setItem(userKey(curUser),JSON.stringify({ba:ba,ho:ho,bp:bp}))}
+function sv(){saveUserData()}
 
 function lgout(){
   if(!confirm('确定退出登录？'))return;
-  curUser=null;
-  ba=900;ho={};
+  curUser=null;ba=900;ho={};bp={};
   document.getElementById('hu').textContent='';
   showAuth('login');
 }
@@ -216,11 +281,8 @@ function lgout(){
 let captchaAnswer=0;
 function genCaptcha(){
   let a=Math.floor(Math.random()*20)+1,b=Math.floor(Math.random()*20)+1;
-  let ops=['+','-','×'];
-  let op=ops[Math.floor(Math.random()*3)];
-  if(op==='+')captchaAnswer=a+b;
-  else if(op==='-')captchaAnswer=a-b;
-  else captchaAnswer=a*b;
+  let ops=['+','-','×'],op=ops[Math.floor(Math.random()*3)];
+  if(op==='+')captchaAnswer=a+b;else if(op==='-')captchaAnswer=a-b;else captchaAnswer=a*b;
   return a+' '+op+' '+b+' = ?';
 }
 
@@ -258,54 +320,38 @@ function showAuth(mode){
   }
   document.getElementById('auth-overlay').style.display='flex';
 }
-
-// ============ 登录逻辑 ============
 function doLogin(){
   let u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
   if(!u)return stt('请输入用户名','er');
   if(u.length<3||u.length>12)return stt('用户名须为3-12位','er');
   if(!p)return stt('请输入密码','er');
-
   let users=getUsers();
   if(!users[u])return stt('用户不存在，请先注册','er');
   if(users[u].pw!==hpw(p))return stt('密码错误','er');
-
-  curUser=u;
-  localStorage.setItem('ms_last_user',u);
-  let d=loadUserData(u);
-  ba=d.ba;ho=d.ho;
+  curUser=u;localStorage.setItem('ms_last_user',u);
+  let d=loadUserData(u);ba=d.ba;ho=d.ho;bp=d.bp||{};
   document.getElementById('auth-overlay').style.display='none';
   document.getElementById('hu').textContent=u;
-  initApp();
-  stt('✅ 欢迎回来，'+u+'！','ok');
+  initApp();stt('✅ 欢迎回来，'+u+'！','ok');
 }
-
-// ============ 注册逻辑 ============
 function doRegister(){
   let u=document.getElementById('ru').value.trim(),p=document.getElementById('rp').value,
       p2=document.getElementById('rp2').value,c=document.getElementById('rc').value.trim();
   if(!u)return stt('请输入用户名','er');
   if(u.length<3||u.length>12)return stt('用户名须为3-12位','er');
   if(!/^[a-zA-Z0-9_\u4e00-\u9fa5]+$/.test(u))return stt('用户名只能包含中英文、数字、下划线','er');
-  if(!p)return stt('请输入密码','er');
-  if(p.length<4)return stt('密码至少4位','er');
+  if(!p)return stt('请输入密码','er');if(p.length<4)return stt('密码至少4位','er');
   if(p!==p2)return stt('两次密码不一致','er');
   if(!c)return stt('请输入验证码','er');
   if(parseInt(c)!==captchaAnswer)return stt('验证码错误，请重新输入','er');
-
   let users=getUsers();
   if(users[u])return stt('用户名已存在，换一个吧','er');
-
-  users[u]={pw:hpw(p),reg:Date.now()};
-  saveUsers(users);
-  curUser=u;
-  localStorage.setItem('ms_last_user',u);
-  ba=900;ho={};
-  saveUserData(u);
+  users[u]={pw:hpw(p),reg:Date.now()};saveUsers(users);
+  curUser=u;localStorage.setItem('ms_last_user',u);
+  ba=900;ho={};bp={};saveUserData();
   document.getElementById('auth-overlay').style.display='none';
   document.getElementById('hu').textContent=u;
-  initApp();
-  stt('🎉 注册成功！赠送 900 初始资金','ok');
+  initApp();stt('🎉 注册成功！赠送 900 初始资金','ok');
 }
 
 // ============ 页面切换 ============
@@ -315,7 +361,7 @@ function go(p){
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('on'));
   document.querySelector('[data-pg="'+p+'"]').classList.add('on');
   if(p==='market'){setTimeout(()=>{if(chart)chart.resize();rc();},100)}
-  if(p==='trade')uti();
+  if(p==='trade'){uti();updateBubbleMeter()}
   if(p==='hold')uh();
 }
 
@@ -326,18 +372,24 @@ function rs(){
     let s=st[c],p=s.p||0,sel=c===selCode?' sel':'';
     let lc=kl[c]?kl[c][kl[c].length-1].c:p;
     let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';
-    h+='<div class="sc'+sel+'" onclick="sel(\''+c+'\')"><div class="n">'+s.n+'</div><div class="p">'+p.toFixed(2)+'</div><div class="c '+cls+'">'+sg+pct.toFixed(2)+'%</div></div>';
+    let bl=getBubbleLevel(c),bbCls='';
+    if(bl==='warn')bbCls=' warn';
+    else if(bl==='danger'||bl==='crash')bbCls=' danger';
+    let bbp=getBubblePct(c);
+    h+='<div class="sc'+sel+'" onclick="sel(\''+c+'\')"><div class="n">'+s.n+'</div><div class="p">'+p.toFixed(2)+'</div><div class="c '+cls+'">'+sg+pct.toFixed(2)+'%</div><div class="bubble-bar'+bbCls+'" style="width:'+Math.min(100,bbp)+'%"></div></div>';
   }
   document.getElementById('sl').innerHTML=h;
 }
 function us(){
   let cs=document.querySelectorAll('.sc'),cds=Object.keys(st);
   cs.forEach((c,i)=>{if(i>=cds.length)return;let s=st[cds[i]],p=s.p||0;let lc=kl[cds[i]]?kl[cds[i]][kl[cds[i]].length-1].c:p;let pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'';c.querySelector('.p').textContent=p.toFixed(2);let el=c.querySelector('.c');el.textContent=sg+pct.toFixed(2)+'%';el.className='c '+cls;});
+  // 更新泡沫条
+  cs.forEach((c,i)=>{if(i>=cds.length)return;let bl=getBubbleLevel(cds[i]),bbCls='',bbp=getBubblePct(cds[i]);if(bl==='warn')bbCls=' warn';else if(bl==='danger'||bl==='crash')bbCls=' danger';let bb=c.querySelector('.bubble-bar');if(bb){bb.style.width=Math.min(100,bbp)+'%';bb.className='bubble-bar'+bbCls}}});
 }
-function sel(cd){selCode=cd;rs();rc();uti()}
+function sel(cd){selCode=cd;rs();rc();uti();updateBubbleMeter()}
 function kr(d){krg=d;document.querySelectorAll('.kr b').forEach(b=>b.classList.remove('on'));event.target.classList.add('on');rc()}
 
-// ============ K线图 ============
+// ============ K线图（带跳动动画） ============
 function gk(cd){
   let s=SD[cd],bp=s.b,cur=bp*(0.7+Math.random()*0.6),k=[],nw=new Date();
   for(let i=200;i>0;i--){
@@ -357,7 +409,7 @@ function rc(){
   if(!k.length)return;
   let ds=k.map(d=>d.dt),oh=k.map(d=>[d.o,d.c,d.l,d.h]),vo=k.map(d=>d.v);
   chart.setOption({
-    backgroundColor:'#0d1117',animation:false,
+    backgroundColor:'#0d1117',animation:true,animationDuration:400,animationEasing:'cubicOut',
     tooltip:{trigger:'axis',axisPointer:{type:'cross'},backgroundColor:'#161b22',borderColor:'#30363d',textStyle:{color:'#c9d1d9',fontSize:11},
       formatter:function(p){if(!p||!p[0])return'';let d=p[0].data,chg=((d[2]-d[1])/d[1]*100).toFixed(2),s=chg>=0?'+':'',cl=chg>=0?'#e15241':'#3fb950';return'<b>'+p[0].axisValue+'</b><br/>开:<span style="color:'+cl+'">'+d[1].toFixed(2)+'</span> 收:<span style="color:'+cl+'">'+d[2].toFixed(2)+'</span> 涨跌:<span style="color:'+cl+'">'+s+chg+'%</span><br/>高:'+d[4].toFixed(2)+' 低:'+d[3].toFixed(2)+' 量:'+((p[1]?.data||0)/10000).toFixed(0)+'万手';}},
     grid:[{left:'8%',right:'4%',top:'5%',height:'62%'},{left:'8%',right:'4%',top:'74%',height:'18%'}],
@@ -367,36 +419,177 @@ function rc(){
   },true);
 }
 
+// ============ 泡沫仪表 ============
+function updateBubbleMeter(){
+  let b=bp[selCode]||{bought:0,sold:0};
+  let net=b.bought-b.sold;
+  let pct=Math.min(100,Math.max(0,net*0.5));
+  let lvl=getBubbleLevel(selCode);
+  let fill=document.getElementById('bm-fill'),warn=document.getElementById('bm-warn');
+  document.getElementById('bm-val').textContent=pct+'%';
+  fill.style.width=pct+'%';
+  fill.className='bm-fill';
+  warn.className='bm-warn';
+  warn.style.display='none';
+  if(lvl==='crash'){
+    fill.className='bm-fill danger';
+    warn.className='bm-warn show';
+    warn.textContent='⚠️ 即将砸盘！赶紧卖出！';
+    warn.style.color='var(--r)';
+  }else if(lvl==='danger'){
+    fill.className='bm-fill danger';
+    warn.className='bm-warn show';
+    warn.textContent='🔴 泡沫严重！随时可能崩盘';
+    warn.style.color='var(--r)';
+  }else if(lvl==='warn'){
+    fill.className='bm-fill warn';
+    warn.className='bm-warn show';
+    warn.textContent='🟡 泡沫正在形成，注意风险';
+    warn.style.color='var(--y)';
+  }
+}
+
 // ============ 交易 ============
 function sa(a){ac=a;let btns=document.querySelectorAll('.tab b');btns.forEach(b=>b.classList.remove('on'));if(a==='buy'){btns[0].classList.add('on');document.getElementById('sb').className='sb buy';document.getElementById('sb').textContent='买入'}else{btns[1].classList.add('on');document.getElementById('sb').className='sb sell';document.getElementById('sb').textContent='卖出'}uc()}
 function qs(n){document.getElementById('sh').value=n;uc()}
 function qm(){let s=st[selCode];if(!s)return;if(ac==='buy')document.getElementById('sh').value=Math.floor(ba/s.p);else{let h=ho[selCode];document.getElementById('sh').value=h?h.s:0}uc()}
 function uc(){let s=st[selCode];if(!s)return;let sh=parseInt(document.getElementById('sh').value)||0,am=sh*s.p;if(ac==='buy')document.getElementById('cl').textContent='预计花费: ¥'+am.toFixed(2)+' | 可用: ¥'+ba.toFixed(2);else{let h=ho[selCode],mx=h?h.s:0;document.getElementById('cl').textContent='预计收入: ¥'+am.toFixed(2)+' | 可卖: '+mx+' 股'}}
-function uti(){let s=st[selCode];if(!s)return;let p=s.p||0,lc=kl[selCode]?kl[selCode][kl[selCode].length-1].c:p;let chg=p-lc,pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[selCode];document.getElementById('ti').innerHTML='<div class="r"><span class="tn">'+s.n+'</span><span style="font-size:11px;color:var(--sub)">'+selCode+'</span></div><div class="r"><span class="tp">'+p.toFixed(2)+'</span><span class="tc '+cls+'">'+sg+chg.toFixed(2)+' ('+sg+pct.toFixed(2)+'%)</span></div><div class="dt"><span>可用资金</span><span>¥'+ba.toFixed(2)+'</span><span>持仓</span><span>'+(h?h.s:0)+' 股</span><span>可买</span><span>'+Math.floor(ba/p)+' 股</span></div>';uc()}
+function uti(){let s=st[selCode];if(!s)return;let p=s.p||0,lc=kl[selCode]?kl[selCode][kl[selCode].length-1].c:p;let chg=p-lc,pct=lc?((p-lc)/lc*100):0,cls=pct>=0?'up':'dn',sg=pct>=0?'+':'',h=ho[selCode];document.getElementById('ti').innerHTML='<div class="r"><span class="tn">'+s.n+'</span><span style="font-size:11px;color:var(--sub)">'+selCode+'</span></div><div class="r"><span class="tp '+cls+'" id="tp-price">'+p.toFixed(2)+'</span><span class="tc '+cls+'">'+sg+chg.toFixed(2)+' ('+sg+pct.toFixed(2)+'%)</span></div><div class="dt"><span>可用资金</span><span>¥'+ba.toFixed(2)+'</span><span>持仓</span><span>'+(h?h.s:0)+' 股</span><span>可买</span><span>'+Math.floor(ba/p)+' 股</span></div>';uc()}
 
+// ============ 砸盘闪屏 ============
+function triggerCrashFlash(){
+  let el=document.getElementById('crash-flash');
+  el.classList.remove('on');
+  void el.offsetWidth;
+  el.classList.add('on');
+}
+
+// ============ 价格跳动动画 ============
+function animatePrice(el,up){
+  el.classList.remove('price-jump','price-fall');
+  void el.offsetWidth;
+  el.classList.add(up?'price-jump':'price-fall');
+}
+
+// ============ 核心交易（买房拉盘→砸盘） ============
 function tr(){
   let s=st[selCode],sh=parseInt(document.getElementById('sh').value)||0;
   if(sh<=0)return stt('请输入有效股数','er');
+
+  // 初始化泡沫追踪
+  if(!bp[selCode])bp[selCode]={bought:0,sold:0};
+
   if(ac==='buy'){
     let totalCost=s.p*sh;
     if(ba<totalCost)return stt('余额不足！需 ¥'+totalCost.toFixed(2),'er');
+
+    // 检查是否即将砸盘（买入就触发）
+    let lvl=getBubbleLevel(selCode);
+    if(lvl==='crash'){
+      // 买入触发砸盘！
+      triggerCrash(selCode,totalCost,sh);
+      return;
+    }
+
     ba-=totalCost;
     if(!ho[selCode])ho[selCode]={s:0,ac:0};
     let h=ho[selCode],tc=h.s*h.ac+totalCost;
     h.s+=sh;h.ac=tc/h.s;
-    s.p=+(s.p*(1+0.0005*sh)).toFixed(2);
-    stt('✅ 买入成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
+
+    // 买入推高泡沫压力
+    bp[selCode].bought+=sh;
+
+    // 计算新价格：基础价 * (1 + 净买入 * 0.5%)
+    let newPrice=calcPrice(selCode);
+    let oldPrice=s.p;
+    s.p=newPrice;
+
+    // 价格跳动动画
+    let tpEl=document.getElementById('tp-price');
+    if(tpEl)animatePrice(tpEl,true);
+
+    // 更新K线
+    updateKline(selCode,oldPrice,newPrice,sh);
+
+    // 买入后检查是否接近砸盘
+    let newLvl=getBubbleLevel(selCode);
+    if(newLvl==='crash'){
+      stt('⚠️ 泡沫至极！下一笔买入将触发砸盘！','warn');
+    }else if(newLvl==='danger'){
+      stt('🔴 泡沫严重！再买就要崩了！','warn');
+    }
+
+    stt('✅ 买入成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2)+' ↑'+(newPrice-oldPrice>=0?'+':'')+(newPrice-oldPrice).toFixed(2),'ok');
   }else{
     if(!ho[selCode]||ho[selCode].s<sh)return stt('持仓不足！','er');
     ba+=s.p*sh;
     ho[selCode].s-=sh;
     if(ho[selCode].s<=0)delete ho[selCode];
-    s.p=+(s.p*(1-0.0005*sh)).toFixed(2);
-    stt('✅ 卖出成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2),'ok');
+
+    // 卖出释放泡沫压力
+    bp[selCode].sold+=sh;
+
+    let newPrice=calcPrice(selCode);
+    let oldPrice=s.p;
+    s.p=newPrice;
+
+    let tpEl=document.getElementById('tp-price');
+    if(tpEl)animatePrice(tpEl,false);
+
+    updateKline(selCode,oldPrice,newPrice,-sh);
+
+    stt('✅ 卖出成功！'+s.n+' '+sh+'股 @ ¥'+s.p.toFixed(2)+' ↓'+(newPrice-oldPrice>=0?'+':'')+(newPrice-oldPrice).toFixed(2),'ok');
   }
-  let k=kl[selCode];
-  if(k&&k.length>0){let last=k[k.length-1];last.c=s.p;last.h=Math.max(last.h,s.p);last.l=Math.min(last.l,s.p);}
-  sv();us();uti();uh();ub();rc();rs();
+
+  sv();us();uti();updateBubbleMeter();uh();ub();rc();rs();
+}
+
+// ============ 砸盘！ ============
+function triggerCrash(cd,totalCost,sh){
+  let s=st[cd];
+  let oldPrice=s.p;
+  let base=SD[cd].b;
+
+  // 先扣钱（买盘推上去）
+  ba-=totalCost;
+  if(!ho[cd])ho[cd]={s:0,ac:0};
+  let h=ho[cd],tc=h.s*h.ac+totalCost;
+  h.s+=sh;h.ac=tc/h.s;
+  bp[cd].bought+=sh;
+
+  // 砸盘！价格暴跌60-80%
+  let crashRatio=0.2+Math.random()*0.2; // 跌到原来的20%-40%
+  let crashPrice=+(oldPrice*crashRatio).toFixed(2);
+  // 但不能低于基础价
+  crashPrice=Math.max(base*0.5,crashPrice);
+  s.p=crashPrice;
+
+  // 重置泡沫压力
+  bp[cd]={bought:0,sold:0};
+
+  // 更新K线
+  updateKline(cd,oldPrice,crashPrice,sh);
+
+  // 闪屏效果
+  triggerCrashFlash();
+
+  // 大号提示
+  stt('💥 砸盘了！'+s.n+' 暴跌至 ¥'+crashPrice.toFixed(2)+'！泡沫破裂！','crash');
+
+  sv();us();uti();updateBubbleMeter();uh();ub();rc();rs();
+}
+
+// 更新K线最后一根蜡烛
+function updateKline(cd,oldPrice,newPrice,shares){
+  let k=kl[cd];
+  if(!k||k.length===0)return;
+  let last=k[k.length-1];
+  // 模拟当根蜡烛：开盘不变，收盘变新价，最高最低也更新
+  last.c=newPrice;
+  last.h=Math.max(last.h,newPrice,oldPrice);
+  last.l=Math.min(last.l,newPrice,oldPrice);
+  // 成交量增加
+  last.v+=Math.abs(shares)*10000;
 }
 
 // ============ 持仓 ============
@@ -409,29 +602,33 @@ function uh(){
   let pe=document.getElementById('hp');pe.textContent=(tp>=0?'+':'')+'¥'+tp.toFixed(2);pe.className='v '+(tp>=0?'up':'dn');
   let ls=document.getElementById('pl');
   if(!its.length){ls.innerHTML='<div class="em"><div class="ic">📭</div><div>暂无持仓</div><div style="font-size:11px;margin-top:4px">去交易页买入股票吧</div></div>';return;}
-  let h='';its.forEach(it=>{let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';h+='<div class="pi" onclick="selCode=\''+it.cd+'\';go(\'trade\');setTimeout(()=>uti(),200)"><div class="ph"><div><span class="pn">'+it.nm+'</span> <span class="pc">'+it.cd+'</span></div><span class="pp '+cls+'">'+sg+'¥'+it.pf.toFixed(2)+'</span></div><div class="pr"><span>持仓 <span>'+it.s+'股</span></span><span>成本 <span>¥'+it.ac.toFixed(2)+'</span></span><span>现价 <span>¥'+it.p.toFixed(2)+'</span></span><span>收益率 <span class="'+cls+'">'+sg+it.pc.toFixed(2)+'%</span></span></div></div>';});ls.innerHTML=h;
+  let h='';its.forEach(it=>{let cls=it.pf>=0?'up':'dn',sg=it.pf>=0?'+':'';h+='<div class="pi" onclick="selCode=\''+it.cd+'\';go(\'trade\');setTimeout(()=>{uti();updateBubbleMeter();},200)"><div class="ph"><div><span class="pn">'+it.nm+'</span> <span class="pc">'+it.cd+'</span></div><span class="pp '+cls+'">'+sg+'¥'+it.pf.toFixed(2)+'</span></div><div class="pr"><span>持仓 <span>'+it.s+'股</span></span><span>成本 <span>¥'+it.ac.toFixed(2)+'</span></span><span>现价 <span>¥'+it.p.toFixed(2)+'</span></span><span>收益率 <span class="'+cls+'">'+sg+it.pc.toFixed(2)+'%</span></span></div></div>';});ls.innerHTML=h;
 }
 
 function ub(){document.getElementById('hb').textContent='¥'+ba.toFixed(2)}
-function ra(){if(!confirm('确定重置账户？'))return;ba=900;ho={};sv();ub();uti();uh();stt('✅ 账户已重置','ok')}
-function stt(m,t){let el=document.getElementById('toast');el.textContent=m;el.className='toast '+t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',2500)}
+function ra(){if(!confirm('确定重置账户？'))return;ba=900;ho={};bp={};sv();ub();uti();updateBubbleMeter();uh();stt('✅ 账户已重置','ok')}
+function stt(m,t){let el=document.getElementById('toast');el.textContent=m;el.className='toast '+t;el.style.display='block';clearTimeout(el._t);el._t=setTimeout(()=>el.style.display='none',t==='crash'?4000:2500)}
 
 // ============ 初始化应用 ============
 function initApp(){
-  for(let c in SD){kl[c]=gk(c);let lc=kl[c][kl[c].length-1].c;st[c]={n:SD[c].n,p:lc}}
-  rs();rc();uti();uh();ub();
+  for(let c in SD){
+    kl[c]=gk(c);
+    // 初始价格由泡沫压力决定
+    st[c]={n:SD[c].n,p:calcPrice(c)};
+  }
+  rs();rc();uti();updateBubbleMeter();uh();ub();
 }
 
 // 键盘回车快捷交易
 document.addEventListener('keydown',function(e){if(e.key==='Enter'&&document.activeElement===document.getElementById('sh'))tr()});
 window.addEventListener('resize',()=>{if(chart)chart.resize();});
 
-// 启动：检查是否已登录
+// 启动
 (function(){
   let lastUser=localStorage.getItem('ms_last_user');
   if(lastUser){
     let users=getUsers();
-    if(users[lastUser]){curUser=lastUser;let d=loadUserData(lastUser);ba=d.ba;ho=d.ho;document.getElementById('hu').textContent=lastUser;initApp();return;}
+    if(users[lastUser]){curUser=lastUser;let d=loadUserData(lastUser);ba=d.ba;ho=d.ho;bp=d.bp||{};document.getElementById('hu').textContent=lastUser;initApp();return;}
   }
   showAuth('login');
 })();
