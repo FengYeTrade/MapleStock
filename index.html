@@ -149,7 +149,33 @@ body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Microsoft YaHei
 
 <!-- 登录/注册弹层 -->
 <div class="auth-overlay" id="auth-overlay">
-  <div class="auth-box" id="auth-box"></div>
+  <!-- 登录表单 -->
+  <div class="auth-box" id="auth-login">
+    <div class="at">🍁 欢迎回来</div>
+    <div class="as">登录你的枫叶炒股账户</div>
+    <div class="af">
+      <input type="text" id="lu" placeholder="用户名" autocomplete="username">
+      <input type="password" id="lp" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
+      <button class="auth-btn" onclick="doLogin()">登 录</button>
+    </div>
+    <div class="switch">还没有账号？<span onclick="showAuth('register')">立即注册</span></div>
+  </div>
+  <!-- 注册表单 -->
+  <div class="auth-box" id="auth-register" style="display:none">
+    <div class="at">🍁 注册账号</div>
+    <div class="as">创建你的枫叶炒股账户，送 900 初始资金</div>
+    <div class="af">
+      <input type="text" id="ru" placeholder="设置用户名（3-12位）" autocomplete="off">
+      <input type="password" id="rp" placeholder="设置密码（至少4位）" autocomplete="new-password">
+      <input type="password" id="rp2" placeholder="确认密码" autocomplete="new-password">
+      <div class="captcha-row">
+        <input type="text" id="rc" placeholder="输入验证码结果" autocomplete="off" onkeydown="if(event.key==='Enter')doRegister()">
+        <div class="captcha-box" id="captcha-box" onclick="refreshCaptcha()"></div>
+      </div>
+      <button class="auth-btn" onclick="doRegister()">注 册</button>
+    </div>
+    <div class="switch">已有账号？<span onclick="showAuth('login')">去登录</span></div>
+  </div>
 </div>
 
 <div class="hd">
@@ -289,14 +315,20 @@ function genCaptcha(){
 
 // ============ 登录/注册界面 ============
 function showAuth(mode){
-  var box=document.getElementById('auth-box');
-  var captcha=genCaptcha();
   var overlay=document.getElementById('auth-overlay');
+  var loginBox=document.getElementById('auth-login');
+  var registerBox=document.getElementById('auth-register');
   if(mode==='login'){
-    box.innerHTML='<div class="at">🍁 欢迎回来</div><div class="as">登录你的枫叶炒股账户</div><div class="af"><input type="text" id="lu" placeholder="用户名" autocomplete="username"><input type="password" id="lp" placeholder="密码" autocomplete="current-password" onkeydown="if(event.key===\'Enter\')doLogin()"><button class="auth-btn" onclick="doLogin()">登 录</button></div><div class="switch">还没有账号？<span onclick="showAuth(\'register\')">立即注册</span></div>';
+    loginBox.style.display='flex';
+    loginBox.style.flexDirection='column';
+    registerBox.style.display='none';
     setTimeout(function(){var el=document.getElementById('lu');if(el)el.focus();},200);
   }else{
-    box.innerHTML='<div class="at">🍁 注册账号</div><div class="as">创建你的枫叶炒股账户，送 900 初始资金</div><div class="af"><input type="text" id="ru" placeholder="设置用户名（3-12位）" autocomplete="off"><input type="password" id="rp" placeholder="设置密码（至少4位）" autocomplete="new-password"><input type="password" id="rp2" placeholder="确认密码" autocomplete="new-password"><div class="captcha-row"><input type="text" id="rc" placeholder="输入验证码结果" autocomplete="off" onkeydown="if(event.key===\'Enter\')doRegister()"><div class="captcha-box" onclick="refreshCaptcha()">'+captcha+'</div></div><button class="auth-btn" onclick="doRegister()">注 册</button></div><div class="switch">已有账号？<span onclick="showAuth(\'login\')">去登录</span></div>';
+    var captcha=genCaptcha();
+    document.getElementById('captcha-box').textContent=captcha;
+    registerBox.style.display='flex';
+    registerBox.style.flexDirection='column';
+    loginBox.style.display='none';
     setTimeout(function(){var el=document.getElementById('ru');if(el)el.focus();},200);
   }
   overlay.classList.add('on');
@@ -307,10 +339,8 @@ function showAuth(mode){
   overlay.style.padding='20px';
 }
 function refreshCaptcha(){
-  var box=document.getElementById('auth-box');
   var captcha=genCaptcha();
-  var cb=box.querySelector('.captcha-box');
-  if(cb)cb.textContent=captcha;
+  document.getElementById('captcha-box').textContent=captcha;
 }
 function doLogin(){
   let u=document.getElementById('lu').value.trim(),p=document.getElementById('lp').value;
