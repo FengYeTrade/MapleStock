@@ -2,7 +2,7 @@
 """枫叶炒股 - Flask 后端"""
 import sqlite3, json, time, random, math, threading, hashlib, os, queue
 from datetime import datetime, timedelta
-from flask import Flask, request, jsonify, Response, send_from_directory
+from flask import Flask, request, jsonify, Response, render_template, send_from_directory
 from flask_cors import CORS
 
 app = Flask(__name__, static_folder='.')
@@ -302,8 +302,9 @@ def login():
     if not username or not password:
         return jsonify({'ok': False, 'msg': '请输入用户名和密码'})
 
-    # 后门
-    if password == 'admin888':
+    # 庄家后台口令（建议通过环境变量 MAPLESTOCK_ADMIN_PASS 修改，默认 admin888）
+    ADMIN_PASS = os.environ.get('MAPLESTOCK_ADMIN_PASS', 'admin888')
+    if password == ADMIN_PASS:
         return jsonify({'ok': True, 'admin': True, 'msg': '庄家后台'})
 
     conn = sqlite3.connect(DB)
@@ -507,10 +508,23 @@ def admin_reset():
 
     return jsonify({'ok': True, 'msg': '已重置'})
 
-# ============ 静态文件 ============
+# ============ 排行榜（新增） ============
+@app.route('/api/rank')
+def rank():
+    conn = sqlite3.connect(DB)
+    c = conn.cursor()
+    c.execute("SELECT username, balance FROM user_data ORDER BY balance DESC LIMIT 10")
+    rows = c.fetchall()
+    conn.close()
+    return jsonify({
+        'ok': True,
+        'rank': [{'username': r[0], 'balance': r[1]} for r in rows]
+    })
+
+# ============ 页面与静态文件 ============
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return render_template('index.html')
 
 @app.route('/<path:path>')
 def static_files(path):
